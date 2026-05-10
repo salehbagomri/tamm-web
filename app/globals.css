@@ -1,26 +1,118 @@
 @import "tailwindcss";
 
+/* ── نظام ألوان تمّ ── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-primary:   #080E18;
+  --bg-surface:   #0D1825;
+  --bg-surface2:  #121F30;
+  --border:       #1A2E44;
+  --blue-dark:    #0A2540;
+  --blue-mid:     #0E4C8C;
+  --blue-primary: #1576D4;
+  --blue-light:   #3E9EF5;
+  --blue-sky:     #8DCBFA;
+  --text-primary: #E8F0F8;
+  --text-second:  #7A96B0;
+  --text-faint:   #3E5468;
+  --success:      #22C98A;
+  --error:        #E05252;
+  --warning:      #F5A623;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ── Tailwind v4 custom theme tokens ── */
+@theme {
+  --color-bg-primary:   #080E18;
+  --color-bg-surface:   #0D1825;
+  --color-bg-surface2:  #121F30;
+  --color-border:       #1A2E44;
+  --color-blue-dark:    #0A2540;
+  --color-blue-mid:     #0E4C8C;
+  --color-blue-primary: #1576D4;
+  --color-blue-light:   #3E9EF5;
+  --color-blue-sky:     #8DCBFA;
+  --color-text-primary: #E8F0F8;
+  --color-text-second:  #7A96B0;
+  --color-text-faint:   #3E5468;
+  --color-success:      #22C98A;
+  --color-error:        #E05252;
+  --color-warning:      #F5A623;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── القواعد الأساسية ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  direction: rtl;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── الخطوط ── */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+}
+
+p {
+  color: var(--text-second);
+  line-height: 1.7;
+}
+
+a {
+  color: var(--blue-light);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--blue-sky);
+}
+
+/* ── الحدود الافتراضية ── */
+* {
+  border-color: var(--border);
+}
+
+/* ── Scrollbar مخصص ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--blue-mid);
+}
+
+/* ── أدوات مساعدة ── */
+.surface {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.surface2 {
+  background-color: var(--bg-surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
 }
