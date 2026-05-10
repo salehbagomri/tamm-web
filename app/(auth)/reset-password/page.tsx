@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
-import { signUpWithEmail } from '@/lib/actions/auth'
+import { updatePassword } from '@/lib/actions/auth'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 
@@ -21,23 +20,18 @@ function EyeIcon({ open }: { open: boolean }) {
   )
 }
 
-export default function RegisterPage() {
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
+export default function ResetPasswordPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
-  const [emailSent, setEmailSent] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const newErrors: Record<string, string> = {}
 
-    if (!name.trim()) newErrors.name = 'يرجى إدخال اسمك الكامل'
-    if (!email) newErrors.email = 'يرجى إدخال البريد الإلكتروني'
     if (password.length < 8) newErrors.password = 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'
     if (password !== confirmPassword) newErrors.confirmPassword = 'كلمتا المرور غير متطابقتين'
 
@@ -45,54 +39,11 @@ export default function RegisterPage() {
 
     setLoading(true)
     setErrors({})
-
-    const result = await signUpWithEmail(name.trim(), email, password)
-
-    if (result?.emailSent) {
-      setEmailSent(true)
-      setLoading(false)
-      return
-    }
+    const result = await updatePassword(password)
     if (result?.error) {
       setErrors({ general: result.error })
       setLoading(false)
     }
-  }
-
-  // رسالة نجاح الإرسال
-  if (emailSent) {
-    return (
-      <div style={{ width: '100%', maxWidth: '420px' }}>
-        <div style={{
-          backgroundColor: 'var(--bg-surface)',
-          border: '1px solid var(--border)',
-          borderRadius: '20px',
-          padding: '2.5rem 2rem',
-          textAlign: 'center',
-        }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📬</div>
-          <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.75rem' }}>
-            تحقق من بريدك الإلكتروني
-          </h1>
-          <p style={{ color: 'var(--text-second)', marginBottom: '1.5rem', lineHeight: 1.7 }}>
-            أرسلنا رابط التأكيد إلى <strong style={{ color: 'var(--text-primary)' }}>{email}</strong>
-            <br />افتح البريد وانقر على الرابط لتفعيل حسابك.
-          </p>
-          <Link href="/login" style={{
-            display: 'block',
-            padding: '0.75rem',
-            textAlign: 'center',
-            backgroundColor: 'var(--blue-primary)',
-            borderRadius: '10px',
-            color: '#fff',
-            fontWeight: 600,
-            textDecoration: 'none',
-          }}>
-            العودة لتسجيل الدخول
-          </Link>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -104,28 +55,12 @@ export default function RegisterPage() {
         padding: '2.5rem 2rem',
         boxShadow: '0 0 60px rgba(21,118,212,0.08)',
       }}>
-        {/* الشعار */}
-        <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
-          <div style={{
-            width: '56px', height: '56px',
-            background: 'linear-gradient(135deg, var(--blue-primary), var(--blue-mid))',
-            borderRadius: '16px',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            color: '#fff',
-            marginBottom: '1rem',
-            boxShadow: '0 8px 24px rgba(21,118,212,0.3)',
-          }}>
-            تمّ
-          </div>
-          <h1 style={{ fontSize: '1.375rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
-            إنشاء حساب جديد
+        <div style={{ marginBottom: '1.75rem' }}>
+          <h1 style={{ fontSize: '1.375rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+            تعيين كلمة مرور جديدة
           </h1>
           <p style={{ color: 'var(--text-second)', fontSize: '0.9rem', margin: 0 }}>
-            انضم إلى منصة تمّ اليوم
+            أدخل كلمة مرورك الجديدة
           </p>
         </div>
 
@@ -145,32 +80,8 @@ export default function RegisterPage() {
           )}
 
           <Input
-            label="الاسم الكامل"
-            id="reg-name"
-            type="text"
-            dir="rtl"
-            placeholder="أدخل اسمك الكامل"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            error={errors.name}
-            autoComplete="name"
-          />
-
-          <Input
-            label="البريد الإلكتروني"
-            id="reg-email"
-            type="email"
-            dir="ltr"
-            placeholder="example@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={errors.email}
-            autoComplete="email"
-          />
-
-          <Input
-            label="كلمة المرور"
-            id="reg-password"
+            label="كلمة المرور الجديدة"
+            id="reset-password"
             type={showPass ? 'text' : 'password'}
             dir="ltr"
             placeholder="8 أحرف على الأقل"
@@ -188,7 +99,7 @@ export default function RegisterPage() {
 
           <Input
             label="تأكيد كلمة المرور"
-            id="reg-confirm"
+            id="reset-confirm"
             type={showConfirm ? 'text' : 'password'}
             dir="ltr"
             placeholder="••••••••"
@@ -205,16 +116,9 @@ export default function RegisterPage() {
           />
 
           <Button type="submit" variant="primary" size="lg" loading={loading} style={{ width: '100%', marginTop: '0.25rem' }}>
-            إنشاء الحساب
+            تحديث كلمة المرور
           </Button>
         </form>
-
-        <p style={{ textAlign: 'center', marginTop: '1.5rem', color: 'var(--text-second)', fontSize: '0.9rem' }}>
-          لديك حساب بالفعل؟{' '}
-          <Link href="/login" style={{ color: 'var(--blue-light)', fontWeight: 600 }}>
-            سجّل دخولك
-          </Link>
-        </p>
       </div>
     </div>
   )
