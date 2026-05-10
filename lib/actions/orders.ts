@@ -1,6 +1,7 @@
 'use server'
 
 import { createServerClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
 
 export interface CheckoutData {
   address: string
@@ -162,4 +163,45 @@ export async function createQuoteRequest(quoteData: QuoteData): Promise<ActionRe
   if (orderErr || !order) return { error: 'حدث خطأ أثناء إرسال الطلب' }
 
   return { orderNumber: order.order_number as string }
+}
+
+// رد العميل على عرض السعر
+export async function respondToQuote(
+  orderId: string,
+  response: 'accepted' | 'rejected',
+  rejectionReason?: string
+): Promise<{ error?: string }> {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'يجب تسجيل الدخول أولاً' }
+
+  const { data: order } = await supabase
+    .from('orders')
+    .select('id, quote_status')
+    .eq('id', orderId)
+    .eq('customer_id', user.id)
+    .single()
+
+  if (!order) return { error: 'الطلب غير موجود' }
+  if (order.quote_status !== 'sent') return { error: 'لا يمكن الرد على هذا العرض' }
+
+  const updates: any = {
+    quote_status: response,
+    quote_responded_at: new Date().toISOString(),
+  }
+  if (response === 'rejected' && rejectionReason) {
+    updates.rejection_reason = rejectionReason
+  }
+
+  const { error } = await supabase
+    .from('orders')
+    .update(updates)
+    .eq('id', orderId)
+
+  if (error) return { error: 'حدث خطأ أثناء حفظ الرد' }
+
+  revalidatePath('/orders')
+  revalidatePath(`/orders/${orderId}`)
+
+  return {}
 }

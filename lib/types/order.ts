@@ -28,6 +28,9 @@ export type OrderItem = {
   quantity: number
   unitPrice: number
   totalPrice: number
+  product?: any
+  service?: any
+  includeInstallation?: boolean
 }
 
 export type Order = {
