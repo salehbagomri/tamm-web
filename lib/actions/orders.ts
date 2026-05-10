@@ -80,9 +80,11 @@ export async function createProductOrder(
 
   const orderItems = cartItems.map((item) => ({
     order_id: order.id,
+    item_type: 'product',
     product_id: item.id,
     quantity: item.quantity,
     unit_price: item.price ?? 0,
+    total_price: (item.price ?? 0) * item.quantity,
     include_installation: item.includeInstallation,
   }))
 
@@ -127,9 +129,11 @@ export async function createServiceOrder(
 
   await supabase.from('order_items').insert({
     order_id: order.id,
+    item_type: 'service',
     service_type_id: serviceId,
     quantity: 1,
     unit_price: basePrice,
+    total_price: basePrice,
     include_installation: false,
   })
 
