@@ -85,11 +85,13 @@ export async function createProductOrder(
     quantity: item.quantity,
     unit_price: item.price ?? 0,
     total_price: (item.price ?? 0) * item.quantity,
-    include_installation: item.includeInstallation,
   }))
 
   const { error: itemsErr } = await supabase.from('order_items').insert(orderItems)
-  if (itemsErr) return { error: 'حدث خطأ أثناء حفظ المنتجات' }
+  if (itemsErr) {
+    console.error('[order_items insert error]', JSON.stringify(itemsErr, null, 2))
+    return { error: `حدث خطأ أثناء حفظ المنتجات: ${itemsErr.message}` }
+  }
 
   return { orderNumber: order.order_number as string }
 }
@@ -134,7 +136,6 @@ export async function createServiceOrder(
     quantity: 1,
     unit_price: basePrice,
     total_price: basePrice,
-    include_installation: false,
   })
 
   return { orderNumber: order.order_number as string }
