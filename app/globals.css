@@ -116,3 +116,67 @@ a:hover {
   border: 1px solid var(--border);
   border-radius: 12px;
 }
+
+/* ── بطاقات المنتجات ── */
+.product-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(21, 118, 212, 0.15);
+  border-color: var(--blue-mid) !important;
+}
+
+/* ── بطاقات الفئات ── */
+.category-card {
+  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+.category-card:hover {
+  transform: translateY(-3px);
+  background-color: var(--blue-dark) !important;
+  border-color: var(--blue-primary) !important;
+}
+
+/* ── بطاقات الخدمات ── */
+.service-card {
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.service-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--blue-primary) !important;
+}
+
+/* ── روابط التنقل ── */
+.nav-link {
+  transition: color 0.15s ease;
+  color: var(--text-second);
+}
+.nav-link:hover {
+  color: var(--text-primary);
+}
+.nav-link.active {
+  color: var(--blue-light);
+}
+
+/* ── Skeleton loading ── */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-surface) 25%,
+    var(--bg-surface2) 50%,
+    var(--bg-surface) 75%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+/* ── Spinner ── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
