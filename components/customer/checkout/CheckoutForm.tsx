@@ -252,11 +252,19 @@ export default function CheckoutForm({ initialAddress, initialPhone }: CheckoutF
             <div style={{ backgroundColor: 'var(--bg-surface2)', borderRadius: '12px', padding: '1rem' }}>
               <p style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.75rem' }}>المنتجات ({items.length})</p>
               {items.map((item) => (
-                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
-                  <span style={{ color: 'var(--text-second)' }}>{item.name} × {item.quantity}</span>
-                  <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
-                    {item.isPriceOnRequest ? 'عند الطلب' : `${((item.price ?? 0) * item.quantity).toLocaleString('ar-SA')} ر.س`}
-                  </span>
+                <div key={item.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '0.75rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{item.quantity}x {item.name}</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
+                      {item.isPriceOnRequest ? 'عند الطلب' : `${((item.price ?? 0) * item.quantity).toLocaleString('ar-SA')} ر.س`}
+                    </span>
+                  </div>
+                  {item.includeInstallation && item.installationPrice > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', paddingRight: '1.25rem' }}>
+                      <span style={{ color: 'var(--blue-light)' }}>🛠 خدمة التركيب</span>
+                      <span style={{ color: 'var(--text-second)' }}>+ {(item.installationPrice * item.quantity).toLocaleString('ar-SA')} ر.س</span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

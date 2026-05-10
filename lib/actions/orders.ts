@@ -84,7 +84,7 @@ export async function createProductOrder(
     product_id: item.id,
     quantity: item.quantity,
     unit_price: item.price ?? 0,
-    total_price: (item.price ?? 0) * item.quantity,
+    total_price: ((item.price ?? 0) + (item.includeInstallation ? item.installationPrice : 0)) * item.quantity,
     include_installation: item.includeInstallation ?? false,
   }))
 
