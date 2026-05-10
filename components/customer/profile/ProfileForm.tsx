@@ -26,8 +26,8 @@ export default function ProfileForm({ profile }: { profile: UserProfile }) {
       e.fullName = 'الاسم يجب أن يكون 3 أحرف على الأقل'
     if (!phone.trim())
       e.phone = 'رقم الجوال مطلوب'
-    else if (!/^05\d{8}$/.test(phone.trim()))
-      e.phone = 'رقم الجوال يجب أن يبدأ بـ 05 ويتكون من 10 أرقام'
+    else if (!/^7\d{8}$/.test(phone.trim()))
+      e.phone = 'رقم الجوال يجب أن يبدأ بـ 7 ويتكون من 9 أرقام'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -80,7 +80,7 @@ export default function ProfileForm({ profile }: { profile: UserProfile }) {
           value={phone}
           onChange={(e) => { setPhone(e.target.value); setErrors((p) => ({ ...p, phone: undefined })) }}
           error={errors.phone}
-          placeholder="05xxxxxxxx"
+          placeholder="7xxxxxxxx"
           style={{ textAlign: 'right' }}
         />
 

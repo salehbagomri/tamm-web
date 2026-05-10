@@ -44,8 +44,8 @@ export default function ServiceBookingForm({ service, initialAddress, initialPho
       e.address = 'يرجى إدخال عنوان تفصيلي (10 أحرف على الأقل)'
     if (!formData.phone.trim())
       e.phone = 'يرجى إدخال رقم الجوال'
-    else if (!/^05\d{8}$/.test(formData.phone.trim()))
-      e.phone = 'رقم الجوال يجب أن يبدأ بـ 05 ويتكون من 10 أرقام'
+    else if (!/^7\d{8}$/.test(formData.phone.trim()))
+      e.phone = 'رقم الجوال يجب أن يبدأ بـ 7 ويتكون من 9 أرقام'
     if (!formData.preferredDate) e.preferredDate = 'يرجى اختيار التاريخ'
     if (!formData.preferredTimeSlot) e.preferredTimeSlot = 'يرجى اختيار وقت الزيارة'
     setErrors(e)
@@ -107,7 +107,7 @@ export default function ServiceBookingForm({ service, initialAddress, initialPho
             error={errors.address} />
 
           <Input label="رقم الجوال" id="book-phone" type="tel" dir="ltr"
-            placeholder="05xxxxxxxx" value={formData.phone}
+            placeholder="7xxxxxxxx" value={formData.phone}
             onChange={(e) => update('phone', e.target.value)}
             error={errors.phone} style={{ textAlign: 'right' }} />
 

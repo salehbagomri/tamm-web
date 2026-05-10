@@ -53,8 +53,8 @@ export default function QuoteRequestForm({ initialPhone }: { initialPhone?: stri
       e.address = 'يرجى إدخال عنوان تفصيلي'
     if (!formData.phone.trim())
       e.phone = 'يرجى إدخال رقم الجوال'
-    else if (!/^05\d{8}$/.test(formData.phone.trim()))
-      e.phone = 'رقم الجوال يجب أن يبدأ بـ 05 ويتكون من 10 أرقام'
+    else if (!/^7\d{8}$/.test(formData.phone.trim()))
+      e.phone = 'رقم الجوال يجب أن يبدأ بـ 7 ويتكون من 9 أرقام'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -168,7 +168,7 @@ export default function QuoteRequestForm({ initialPhone }: { initialPhone?: stri
             error={errors.address} />
 
           <Input label="رقم الجوال" id="quote-phone" type="tel" dir="ltr"
-            placeholder="05xxxxxxxx" value={formData.phone}
+            placeholder="7xxxxxxxx" value={formData.phone}
             onChange={(e) => update('phone', e.target.value)}
             error={errors.phone} style={{ textAlign: 'right' }} />
 
