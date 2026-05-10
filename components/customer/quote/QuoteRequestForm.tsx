@@ -53,8 +53,8 @@ export default function QuoteRequestForm({ initialPhone }: { initialPhone?: stri
       e.address = 'يرجى إدخال عنوان تفصيلي'
     if (!formData.phone.trim())
       e.phone = 'يرجى إدخال رقم الجوال'
-    else if (!/^7\d{8}$/.test(formData.phone.trim()))
-      e.phone = 'رقم الجوال يجب أن يبدأ بـ 7 ويتكون من 9 أرقام'
+    else if (!/^(?:\+967|00967)?7\d{8}$/.test(formData.phone.replace(/\s+/g, '')))
+      e.phone = 'رقم الجوال يجب أن يكون بصيغة يمنية صحيحة (مثل 7xxxxxxxx أو +9677xxxxxxxx)'
     setErrors(e)
     return Object.keys(e).length === 0
   }
