@@ -11,10 +11,13 @@ function isPublicPath(path: string): boolean {
 }
 
 // المسارات التي تتطلب تسجيل دخول
-const PROTECTED_PATHS = ['/orders', '/profile', '/cart']
+const PROTECTED_PATHS = ['/orders', '/profile', '/checkout', '/quote-request', '/order-success']
 
 function isProtectedCustomerPath(path: string): boolean {
-  return PROTECTED_PATHS.some((p) => path === p || path.startsWith(p + '/'))
+  if (PROTECTED_PATHS.some((p) => path === p || path.startsWith(p + '/'))) return true
+  // حجز الخدمة يتطلب تسجيل دخول
+  if (/^\/services\/[^/]+\/book/.test(path)) return true
+  return false
 }
 
 export async function proxy(request: NextRequest) {

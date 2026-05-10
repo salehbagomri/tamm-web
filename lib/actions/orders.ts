@@ -1,0 +1,165 @@
+'use server'
+
+import { createServerClient } from '@/lib/supabase/server'
+
+export interface CheckoutData {
+  address: string
+  phone: string
+  notes: string
+  preferredDate: string
+  preferredTimeSlot: string
+}
+
+export interface BookingData {
+  address: string
+  phone: string
+  notes: string
+  preferredDate: string
+  preferredTimeSlot: string
+}
+
+export interface QuoteData {
+  serviceCategory: string
+  description: string
+  address: string
+  phone: string
+  preferredDate: string
+}
+
+interface CartItemInput {
+  id: string
+  price: number | null
+  installationPrice: number
+  includeInstallation: boolean
+  quantity: number
+  isPriceOnRequest: boolean
+}
+
+type ActionResult = { error: string } | { orderNumber: string }
+
+// توليد رقم طلب فريد
+function generateOrderNumber(): string {
+  return `TM-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`
+}
+
+// إنشاء طلب منتجات من السلة
+export async function createProductOrder(
+  cartItems: CartItemInput[],
+  checkoutData: CheckoutData
+): Promise<ActionResult> {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'يجب تسجيل الدخول أولاً' }
+
+  const totalAmount = cartItems.reduce((sum, item) => {
+    if (item.isPriceOnRequest) return sum
+    const base = (item.price ?? 0) + (item.includeInstallation ? item.installationPrice : 0)
+    return sum + base * item.quantity
+  }, 0)
+
+  const orderNumber = generateOrderNumber()
+
+  const { data: order, error: orderErr } = await supabase
+    .from('orders')
+    .insert({
+      order_number: orderNumber,
+      customer_id: user.id,
+      order_type: 'product',
+      status: 'pending',
+      total_amount: totalAmount,
+      address: checkoutData.address,
+      preferred_date: checkoutData.preferredDate || null,
+      preferred_time_slot: checkoutData.preferredTimeSlot || null,
+      notes: checkoutData.notes || null,
+    })
+    .select('id, order_number')
+    .single()
+
+  if (orderErr || !order) return { error: 'حدث خطأ أثناء إنشاء الطلب، يرجى المحاولة مرة أخرى' }
+
+  const orderItems = cartItems.map((item) => ({
+    order_id: order.id,
+    product_id: item.id,
+    quantity: item.quantity,
+    unit_price: item.price ?? 0,
+    include_installation: item.includeInstallation,
+  }))
+
+  const { error: itemsErr } = await supabase.from('order_items').insert(orderItems)
+  if (itemsErr) return { error: 'حدث خطأ أثناء حفظ المنتجات' }
+
+  return { orderNumber: order.order_number as string }
+}
+
+// إنشاء طلب خدمة
+export async function createServiceOrder(
+  serviceId: string,
+  serviceName: string,
+  basePrice: number,
+  isQuoteBased: boolean,
+  bookingData: BookingData
+): Promise<ActionResult> {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'يجب تسجيل الدخول أولاً' }
+
+  const orderNumber = generateOrderNumber()
+
+  const { data: order, error: orderErr } = await supabase
+    .from('orders')
+    .insert({
+      order_number: orderNumber,
+      customer_id: user.id,
+      order_type: isQuoteBased ? 'quote_request' : 'service',
+      status: 'pending',
+      total_amount: isQuoteBased ? 0 : basePrice,
+      address: bookingData.address,
+      preferred_date: bookingData.preferredDate || null,
+      preferred_time_slot: bookingData.preferredTimeSlot || null,
+      notes: bookingData.notes || null,
+      quote_status: isQuoteBased ? 'pending' : null,
+    })
+    .select('id, order_number')
+    .single()
+
+  if (orderErr || !order) return { error: 'حدث خطأ أثناء إنشاء الحجز' }
+
+  await supabase.from('order_items').insert({
+    order_id: order.id,
+    service_type_id: serviceId,
+    quantity: 1,
+    unit_price: basePrice,
+    include_installation: false,
+  })
+
+  return { orderNumber: order.order_number as string }
+}
+
+// إنشاء طلب عرض سعر
+export async function createQuoteRequest(quoteData: QuoteData): Promise<ActionResult> {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'يجب تسجيل الدخول أولاً' }
+
+  const orderNumber = generateOrderNumber()
+
+  const { data: order, error: orderErr } = await supabase
+    .from('orders')
+    .insert({
+      order_number: orderNumber,
+      customer_id: user.id,
+      order_type: 'quote_request',
+      status: 'pending',
+      total_amount: 0,
+      address: quoteData.address,
+      preferred_date: quoteData.preferredDate || null,
+      notes: `الفئة: ${quoteData.serviceCategory}\n${quoteData.description}`,
+      quote_status: 'pending',
+    })
+    .select('id, order_number')
+    .single()
+
+  if (orderErr || !order) return { error: 'حدث خطأ أثناء إرسال الطلب' }
+
+  return { orderNumber: order.order_number as string }
+}
