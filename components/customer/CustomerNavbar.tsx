@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import type { UserProfile } from '@/lib/types/user'
 import { signOut } from '@/lib/actions/auth'
+import { useCart } from '@/lib/store/cart-context'
 
 const NAV_LINKS = [
   { href: '/home', label: 'الرئيسية' },
@@ -23,6 +24,7 @@ export default function CustomerNavbar({ user }: CustomerNavbarProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const { totalItems } = useCart()
 
   // تأثير التمرير
   useEffect(() => {
@@ -105,6 +107,18 @@ export default function CustomerNavbar({ user }: CustomerNavbarProps) {
                 <line x1="3" y1="6" x2="21" y2="6"/>
                 <path d="M16 10a4 4 0 0 1-8 0"/>
               </svg>
+              {totalItems > 0 && (
+                <span style={{
+                  position: 'absolute', top: '2px', left: '2px',
+                  minWidth: '18px', height: '18px', borderRadius: '999px',
+                  backgroundColor: 'var(--blue-primary)', color: '#fff',
+                  fontSize: '0.65rem', fontWeight: 700,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '0 4px',
+                }}>
+                  {totalItems > 99 ? '99+' : totalItems}
+                </span>
+              )}
             </Link>
 
             {/* مستخدم مسجل */}

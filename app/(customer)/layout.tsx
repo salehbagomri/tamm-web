@@ -1,6 +1,7 @@
 import { createServerClient } from '@/lib/supabase/server'
 import { getUserProfile } from '@/lib/utils/auth'
 import CustomerNavbar from '@/components/customer/CustomerNavbar'
+import { CartProvider } from '@/lib/store/cart-context'
 import type { UserProfile } from '@/lib/types/user'
 
 export default async function CustomerLayout({ children }: { children: React.ReactNode }) {
@@ -34,9 +35,11 @@ export default async function CustomerLayout({ children }: { children: React.Rea
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-primary)' }}>
-      <CustomerNavbar user={profile} />
-      <main>{children}</main>
-    </div>
+    <CartProvider>
+      <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-primary)' }}>
+        <CustomerNavbar user={profile} />
+        <main>{children}</main>
+      </div>
+    </CartProvider>
   )
 }
