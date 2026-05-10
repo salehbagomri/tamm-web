@@ -8,6 +8,13 @@ export async function proxy(request: NextRequest) {
     request: { headers: request.headers },
   })
 
+  // تجاوز الحماية إذا لم تُضَف مفاتيح Supabase بعد (بيئة التطوير)
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!supabaseUrl || !supabaseKey) {
+    return response
+  }
+
   const supabase = createMiddlewareClient(request, response)
 
   // تحديث الجلسة وقراءة المستخدم الحالي
