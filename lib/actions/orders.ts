@@ -85,6 +85,7 @@ export async function createProductOrder(
     quantity: item.quantity,
     unit_price: item.price ?? 0,
     total_price: (item.price ?? 0) * item.quantity,
+    include_installation: item.includeInstallation ?? false,
   }))
 
   const { error: itemsErr } = await supabase.from('order_items').insert(orderItems)
@@ -136,6 +137,7 @@ export async function createServiceOrder(
     quantity: 1,
     unit_price: basePrice,
     total_price: basePrice,
+    include_installation: false,
   })
 
   return { orderNumber: order.order_number as string }
