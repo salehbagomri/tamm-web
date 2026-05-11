@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تغيير البريد الإلكتروني — تمّ</title>
+</head>
+<body style="margin:0;padding:0;background-color:#080E18;font-family:'Segoe UI',Tahoma,Arial,sans-serif;direction:rtl;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#080E18;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background-color:#0D1825;border-radius:20px;border:1px solid #1A2E44;overflow:hidden;">
+
+          <!-- الرأس -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#0A2540,#0E4C8C);padding:36px 40px;text-align:center;">
+              <div style="display:inline-block;background:#1576D4;border-radius:14px;padding:10px 18px;margin-bottom:16px;">
+                <span style="color:#fff;font-size:22px;font-weight:800;letter-spacing:1px;">تمّ</span>
+              </div>
+              <p style="color:#8DCBFA;margin:0;font-size:13px;">منصة تمّ للخدمات المنزلية</p>
+            </td>
+          </tr>
+
+          <!-- أيقونة -->
+          <tr>
+            <td style="padding:36px 40px 0;text-align:center;">
+              <div style="display:inline-block;background:#121F30;border:1px solid #1A2E44;border-radius:50%;width:72px;height:72px;line-height:72px;font-size:32px;text-align:center;">
+                ✉️
+              </div>
+            </td>
+          </tr>
+
+          <!-- المحتوى -->
+          <tr>
+            <td style="padding:24px 40px 0;">
+              <h1 style="color:#E8F0F8;font-size:22px;font-weight:700;margin:0 0 12px;text-align:center;">
+                تأكيد تغيير البريد الإلكتروني
+              </h1>
+              <p style="color:#7A96B0;font-size:15px;line-height:1.7;text-align:center;margin:0 0 32px;">
+                طلبت تغيير بريدك الإلكتروني المرتبط بحساب تمّ.<br />
+                اضغط على الزر أدناه لتأكيد البريد الجديد.
+              </p>
+
+              <!-- زر التأكيد -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="padding:0 0 32px;">
+                    <a href="{{ .ConfirmationURL }}"
+                      style="display:inline-block;background:linear-gradient(135deg,#1576D4,#0E4C8C);color:#ffffff;text-decoration:none;padding:16px 48px;border-radius:12px;font-size:16px;font-weight:700;">
+                      ✓ تأكيد البريد الجديد
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="color:#3E5468;font-size:12px;text-align:center;margin:0 0 8px;">
+                إذا لم يعمل الزر، انسخ الرابط التالي وافتحه في المتصفح:
+              </p>
+              <p style="word-break:break-all;text-align:center;margin:0 0 24px;">
+                <a href="{{ .ConfirmationURL }}" style="color:#3E9EF5;font-size:11px;">{{ .ConfirmationURL }}</a>
+              </p>
+            </td>
+          </tr>
+
+          <!-- تحذير -->
+          <tr>
+            <td style="padding:0 40px 20px;">
+              <div style="background:#121F30;border:1px solid #1A2E44;border-radius:12px;padding:16px;text-align:center;">
+                <p style="color:#3E5468;font-size:12px;margin:0;line-height:1.6;">
+                  ⏳ هذا الرابط صالح لمدة <strong style="color:#7A96B0;">24 ساعة</strong> فقط.<br />
+                  إذا لم تطلب هذا التغيير، تواصل معنا فوراً.
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- التذييل -->
+          <tr>
+            <td style="padding:20px 40px 36px;text-align:center;border-top:1px solid #1A2E44;">
+              <p style="color:#3E5468;font-size:12px;margin:0;line-height:1.6;">
+                © 2025 تمّ — جميع الحقوق محفوظة<br />
+                منصة تمّ لخدمات التكييف والطاقة الشمسية
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
