@@ -69,8 +69,16 @@ export default function PromotionForm({ promotion }: { promotion?: AdminPromotio
           <input type="text" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} style={inputStyle} />
         </div>
         <div>
-          <label style={{ display: 'block', margin: '0 0 0.5rem', color: 'var(--text-second)', fontSize: '0.9rem' }}>اسم الأيقونة (مثل: star)</label>
-          <input type="text" value={iconName} onChange={(e) => setIconName(e.target.value)} style={inputStyle} dir="ltr" />
+          <label style={{ display: 'block', margin: '0 0 0.5rem', color: 'var(--text-second)', fontSize: '0.9rem' }}>الأيقونة المرافقة</label>
+          <select value={iconName} onChange={(e) => setIconName(e.target.value)} style={inputStyle}>
+            <option value="">بدون أيقونة</option>
+            <option value="star">⭐ نجمة (لعروض التخفيضات)</option>
+            <option value="handyman">🔧 صيانة (لخدمات الصيانة)</option>
+            <option value="ac_unit">❄️ تكييف (لمنتجات التكييف)</option>
+            <option value="local_shipping">🚚 سيارة توصيل (للتوصيل المجاني)</option>
+            <option value="shopping_cart">🛒 سلة تسوق (للمتجر)</option>
+            <option value="build">🛠️ أدوات (لخدمات التركيب)</option>
+          </select>
         </div>
         <div>
           <label style={{ display: 'block', margin: '0 0 0.5rem', color: 'var(--text-second)', fontSize: '0.9rem' }}>لون البداية (Hex)</label>
@@ -87,8 +95,15 @@ export default function PromotionForm({ promotion }: { promotion?: AdminPromotio
           </div>
         </div>
         <div>
-          <label style={{ display: 'block', margin: '0 0 0.5rem', color: 'var(--text-second)', fontSize: '0.9rem' }}>الوجهة (الرابط)</label>
-          <input type="text" value={destination} onChange={(e) => setDestination(e.target.value)} style={inputStyle} dir="ltr" placeholder="/customer/store" />
+          <label style={{ display: 'block', margin: '0 0 0.5rem', color: 'var(--text-second)', fontSize: '0.9rem' }}>الوجهة (عند الضغط)</label>
+          <select value={destination} onChange={(e) => setDestination(e.target.value)} style={inputStyle}>
+            <option value="">بدون رابط (إعلان غير قابل للضغط)</option>
+            <option value="/customer/store">🛍️ المتجر (لشراء المكيفات)</option>
+            <option value="/services">🔧 الخدمات (لطلب صيانة أو تركيب)</option>
+            <option value="/quote-request">📋 طلبات التسعير (للمشاريع الكبيرة)</option>
+            <option value="/orders">📦 طلباتي (لمتابعة طلبات العميل)</option>
+            <option value="/profile">👤 الملف الشخصي</option>
+          </select>
         </div>
         <div>
           <label style={{ display: 'block', margin: '0 0 0.5rem', color: 'var(--text-second)', fontSize: '0.9rem' }}>الترتيب</label>
