@@ -4,10 +4,12 @@ import { notFound } from 'next/navigation'
 
 export const metadata = { title: 'تفاصيل الفني — تمّ' }
 
-export default async function TechnicianDetailPage({ params }: { params: { id: string } }) {
+export default async function TechnicianDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params
+  
   const [technician, orders] = await Promise.all([
-    getAdminTechnicianById(params.id),
-    getAdminTechnicianOrders(params.id),
+    getAdminTechnicianById(resolvedParams.id),
+    getAdminTechnicianOrders(resolvedParams.id),
   ])
 
   if (!technician) return notFound()
