@@ -1,22 +1,70 @@
-import type { Metadata } from 'next'
+import { notFound, redirect } from 'next/navigation'
+import { createServerClient } from '@/lib/supabase/server'
+import { getAdminOrderById, getAvailableTechnicians } from '@/lib/data/admin/orders'
+import AdminOrderHeader from '@/components/admin/orders/AdminOrderHeader'
+import AdminCustomerInfo from '@/components/admin/orders/AdminCustomerInfo'
+import AdminOrderActions from '@/components/admin/orders/AdminOrderActions'
+import QuoteManagement from '@/components/admin/orders/QuoteManagement'
 
-export const metadata: Metadata = {
-  title: 'تفاصيل الطلب | تمّ',
+interface PageProps {
+  params: Promise<{ id: string }>
 }
 
-export default function AdminOrderDetailPage({
-  params,
-}: {
-  params: { id: string }
-}) {
+export async function generateMetadata({ params }: PageProps) {
+  const { id } = await params
+  return { title: `تفاصيل الطلب — تمّ` }
+}
+
+export default async function AdminOrderDetailPage({ params }: PageProps) {
+  const { id } = await params
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'manager') redirect('/home')
+
+  const [order, technicians] = await Promise.all([
+    getAdminOrderById(id),
+    getAvailableTechnicians(),
+  ])
+
+  if (!order) notFound()
+
   return (
-    <div>
-      <h1 style={{ color: 'var(--text-primary)', fontSize: '1.75rem', fontWeight: 700 }}>
-        تفاصيل الطلب — إدارة
-      </h1>
-      <p style={{ color: 'var(--text-second)', marginTop: '0.5rem' }}>
-        معرّف الطلب: {params.id} — قيد التطوير
-      </p>
+    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      {/* الرأس */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <AdminOrderHeader order={order} />
+      </div>
+
+      {/* المحتوى الرئيسي */}
+      <div style={{
+        display: 'grid',
+        gap: '1.5rem',
+        gridTemplateColumns: '1fr 380px',
+      }}
+        className="admin-order-grid"
+      >
+        {/* العمود الرئيسي */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <AdminCustomerInfo order={order} />
+        </div>
+
+        {/* العمود الجانبي */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          {order.orderType === 'quote_request' && (
+            <QuoteManagement order={order} />
+          )}
+          <AdminOrderActions order={order} technicians={technicians} />
+        </div>
+      </div>
+
+      <style>{`
+        @media (max-width: 900px) {
+          .admin-order-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   )
 }
