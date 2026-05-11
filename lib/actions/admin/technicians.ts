@@ -8,17 +8,18 @@ function revalidateTechnicians() {
   revalidatePath('/admin/dashboard')
 }
 
-export async function addTechnician(email: string): Promise<{ error?: string }> {
+export async function addTechnician(identifier: string): Promise<{ error?: string }> {
   const supabase = await createServerClient()
+  const searchVal = identifier.trim().toLowerCase()
 
-  // جلب الملف الشخصي
+  // جلب الملف الشخصي بالبريد أو الجوال
   const { data: profile, error: profileErr } = await supabase
     .from('profiles')
     .select('id, role')
-    .eq('email', email.trim().toLowerCase())
+    .or(`email.eq.${searchVal},phone.eq.${searchVal}`)
     .single()
 
-  if (profileErr || !profile) return { error: 'لم يتم العثور على مستخدم بهذا البريد الإلكتروني' }
+  if (profileErr || !profile) return { error: 'لم يتم العثور على مستخدم بهذا البريد الإلكتروني أو رقم الجوال' }
   if (profile.role !== 'technician') return { error: 'هذا المستخدم ليس فنياً — يجب أن يكون دوره "technician"' }
 
   // تحقق من عدم وجوده مسبقاً

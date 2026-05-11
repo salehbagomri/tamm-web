@@ -4,24 +4,24 @@ import { useState } from 'react'
 import { addTechnician } from '@/lib/actions/admin/technicians'
 
 export default function AddTechnicianForm() {
-  const [email, setEmail]     = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState('')
   const [error, setError]     = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!email.trim()) { setError('يرجى إدخال البريد الإلكتروني'); return }
+    if (!identifier.trim()) { setError('يرجى إدخال البريد الإلكتروني أو رقم الجوال'); return }
     setLoading(true); setError(''); setSuccess('')
 
-    const res = await addTechnician(email.trim())
+    const res = await addTechnician(identifier.trim())
     setLoading(false)
 
     if (res.error) {
       setError(res.error)
     } else {
       setSuccess('تم إضافة الفني بنجاح ✓')
-      setEmail('')
+      setIdentifier('')
       setTimeout(() => setSuccess(''), 4000)
     }
   }
@@ -45,10 +45,10 @@ export default function AddTechnicianForm() {
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
         <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="البريد الإلكتروني للفني..."
+          type="text"
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
+          placeholder="البريد الإلكتروني أو رقم الجوال للفني..."
           style={{
             flex: 1, minWidth: '240px', padding: '0.75rem 1rem',
             backgroundColor: 'var(--bg-surface2)',
