@@ -46,6 +46,7 @@ export async function proxy(request: NextRequest) {
     if (user) {
       const role = await getUserRole(supabase, user.id)
       if (role === 'manager') return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+      if (role === 'technician') return NextResponse.redirect(new URL('/access-denied', request.url))
       return NextResponse.redirect(new URL('/home', request.url))
     }
     return response
@@ -55,6 +56,7 @@ export async function proxy(request: NextRequest) {
   if (path.startsWith('/admin')) {
     if (!user) return NextResponse.redirect(new URL('/login', request.url))
     const role = await getUserRole(supabase, user.id)
+    if (role === 'technician') return NextResponse.redirect(new URL('/access-denied', request.url))
     if (role !== 'manager') return NextResponse.redirect(new URL('/home', request.url))
     return response
   }
@@ -64,6 +66,7 @@ export async function proxy(request: NextRequest) {
     if (!user) return NextResponse.redirect(new URL('/login', request.url))
     const role = await getUserRole(supabase, user.id)
     if (role === 'manager') return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+    if (role === 'technician') return NextResponse.redirect(new URL('/access-denied', request.url))
     return response
   }
 
@@ -72,6 +75,7 @@ export async function proxy(request: NextRequest) {
     if (user) {
       const role = await getUserRole(supabase, user.id)
       if (role === 'manager') return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+      if (role === 'technician') return NextResponse.redirect(new URL('/access-denied', request.url))
     }
     return NextResponse.redirect(new URL('/home', request.url))
   }
