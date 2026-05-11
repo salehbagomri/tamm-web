@@ -16,7 +16,7 @@ export async function getAdminTechnicians(): Promise<AdminTechnician[]> {
   const { data, error } = await supabase
     .from('technicians')
     .select(`
-      id, profile_id, is_available,
+      id, profile_id, is_active,
       profiles!technicians_profile_id_fkey(full_name, phone, email)
     `)
     .order('created_at', { ascending: false })
@@ -36,7 +36,7 @@ export async function getAdminTechnicians(): Promise<AdminTechnician[]> {
       name: (t.profiles as any)?.full_name ?? 'فني',
       phone: (t.profiles as any)?.phone ?? null,
       email: (t.profiles as any)?.email ?? null,
-      isAvailable: t.is_available ?? true,
+      isAvailable: t.is_active ?? true,
       assignedOrdersCount: count ?? 0,
     })
   }
@@ -47,7 +47,7 @@ export async function getAdminTechnicianById(id: string): Promise<AdminTechnicia
   const supabase = await createServerClient()
   const { data, error } = await supabase
     .from('technicians')
-    .select('id, profile_id, is_available, profiles!technicians_profile_id_fkey(full_name, phone, email)')
+    .select('id, profile_id, is_active, profiles!technicians_profile_id_fkey(full_name, phone, email)')
     .eq('id', id)
     .single()
 
@@ -63,7 +63,7 @@ export async function getAdminTechnicianById(id: string): Promise<AdminTechnicia
     name: (data.profiles as any)?.full_name ?? 'فني',
     phone: (data.profiles as any)?.phone ?? null,
     email: (data.profiles as any)?.email ?? null,
-    isAvailable: data.is_available ?? true,
+    isAvailable: data.is_active ?? true,
     assignedOrdersCount: count ?? 0,
   }
 }

@@ -34,7 +34,7 @@ export async function addTechnician(identifier: string): Promise<{ error?: strin
   // إضافة الفني
   const { error: insertErr } = await supabase.from('technicians').insert({
     profile_id: profile.id,
-    is_available: true,
+    is_active: true,
   })
 
   if (insertErr) { console.error('[addTechnician]', insertErr); return { error: 'فشل إضافة الفني' } }
@@ -61,7 +61,7 @@ export async function toggleTechnicianAvailability(
   const supabase = await createServerClient()
   const { error } = await supabase
     .from('technicians')
-    .update({ is_available: isAvailable })
+    .update({ is_active: isAvailable })
     .eq('id', technicianId)
 
   if (error) return { error: 'فشل تحديث حالة الفني' }

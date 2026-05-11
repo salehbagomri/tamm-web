@@ -204,7 +204,7 @@ export async function getAvailableTechnicians(): Promise<AvailableTechnician[]> 
   const { data, error } = await supabase
     .from('technicians')
     .select('id, profile_id, profiles(full_name, phone)')
-    .eq('is_available', true)
+    .eq('is_active', true)
 
   if (error || !data) return []
 
