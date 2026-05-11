@@ -91,10 +91,21 @@ export async function getAdminOrders(filters: AdminOrderFilters = {}): Promise<{
 
   if (status && status !== 'all') query = query.eq('status', status)
   if (order_type && order_type !== 'all') query = query.eq('order_type', order_type)
+  
   if (search?.trim()) {
-    query = query.or(
-      `order_number.ilike.%${search.trim()}%,profiles.full_name.ilike.%${search.trim()}%`
-    )
+    const s = search.trim()
+    const { data: matchedProfiles } = await supabase
+      .from('profiles')
+      .select('id')
+      .ilike('full_name', `%${s}%`)
+      
+    const profileIds = matchedProfiles?.map(p => p.id) || []
+    
+    let orCondition = `order_number.ilike.%${s}%`
+    if (profileIds.length > 0) {
+      orCondition += `,customer_id.in.(${profileIds.join(',')})`
+    }
+    query = query.or(orCondition)
   }
 
   const { data, count, error } = await query
