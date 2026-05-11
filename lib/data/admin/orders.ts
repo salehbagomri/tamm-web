@@ -46,7 +46,7 @@ export type AvailableTechnician = {
 function mapOrderRow(row: any): AdminOrderRow {
   const profile = row.profiles
   const assignment = Array.isArray(row.assignments) ? row.assignments[0] : null
-  const techProfile = assignment?.profiles ?? null
+  const techProfile = assignment?.technicians?.profiles ?? null
 
   return {
     id: row.id,
@@ -85,7 +85,7 @@ export async function getAdminOrders(filters: AdminOrderFilters = {}): Promise<{
        preferred_date, preferred_time_slot, notes, created_at,
        quote_status, quote_price,
        profiles!orders_customer_id_fkey(full_name, phone),
-       assignments(profiles!assignments_technician_id_fkey(full_name))`,
+       assignments(technicians(profiles(full_name)))`,
       { count: 'exact' }
     )
 
@@ -130,7 +130,7 @@ export async function getAdminOrderById(orderId: string): Promise<AdminOrderDeta
       ),
       assignments(
         id, technician_id, technician_notes, created_at,
-        profiles!assignments_technician_id_fkey(id, full_name, phone)
+        technicians(profiles(id, full_name, phone))
       )
     `)
     .eq('id', orderId)
@@ -139,7 +139,7 @@ export async function getAdminOrderById(orderId: string): Promise<AdminOrderDeta
   if (error || !data) return null
 
   const assignment = Array.isArray(data.assignments) ? data.assignments[0] : null
-  const techProfile = assignment?.profiles ?? null
+  const techProfile = assignment?.technicians?.profiles ?? null
   const customerProfile = data.profiles ?? null
 
   return {
@@ -241,7 +241,7 @@ export async function getAdminQuotes(filters: AdminQuoteFilters = {}): Promise<{
        preferred_date, preferred_time_slot, notes, created_at,
        quote_status, quote_price,
        profiles!orders_customer_id_fkey(full_name, phone),
-       assignments(profiles!assignments_technician_id_fkey(full_name))`,
+       assignments(technicians(profiles(full_name)))`,
       { count: 'exact' }
     )
     .eq('order_type', 'quote_request')
