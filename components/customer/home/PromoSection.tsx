@@ -26,48 +26,40 @@ export default function PromoSection({ promotions }: { promotions: Promotion[] }
         <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '16px' }}>
           {/* البطاقة */}
           <div style={{
-            background: 'linear-gradient(135deg, var(--blue-dark), var(--blue-mid))',
-            border: '1px solid var(--blue-mid)',
+            background: promo.gradientStart ? `linear-gradient(135deg, ${promo.gradientStart}, ${promo.gradientEnd || promo.gradientStart})` : 'linear-gradient(135deg, var(--blue-dark), var(--blue-mid))',
             borderRadius: '16px',
             padding: '2rem',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             gap: '1rem', minHeight: '140px',
+            position: 'relative'
           }}>
             <div>
               <div style={{
                 display: 'inline-flex', padding: '0.25rem 0.75rem',
-                backgroundColor: 'rgba(245,166,35,0.2)',
-                border: '1px solid rgba(245,166,35,0.4)',
+                backgroundColor: 'rgba(255,255,255,0.1)',
                 borderRadius: '999px', marginBottom: '0.75rem',
               }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--warning)', fontWeight: 700 }}>
-                  عرض خاص {promo.discountPercent ? `- خصم ${promo.discountPercent}%` : ''}
+                <span style={{ fontSize: '0.8rem', color: '#fff', fontWeight: 700 }}>
+                  عرض خاص
                 </span>
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 0.5rem' }}>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#fff', margin: '0 0 0.5rem' }}>
                 {promo.title}
               </h3>
-              {promo.description && (
-                <p style={{ fontSize: '0.875rem', color: 'var(--text-second)', margin: 0 }}>
-                  {promo.description}
+              {promo.subtitle && (
+                <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)', margin: 0 }}>
+                  {promo.subtitle}
                 </p>
               )}
             </div>
 
-            {/* نسبة الخصم */}
-            {promo.discountPercent && (
+            {promo.iconName && (
               <div style={{
-                minWidth: '80px', height: '80px', borderRadius: '50%',
-                background: 'rgba(245,166,35,0.15)',
-                border: '2px solid var(--warning)',
-                display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center',
+                fontSize: '3rem', opacity: 0.8,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0,
               }}>
-                <span style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--warning)', lineHeight: 1 }}>
-                  {promo.discountPercent}%
-                </span>
-                <span style={{ fontSize: '0.7rem', color: 'var(--warning)', opacity: 0.8 }}>خصم</span>
+                ⭐
               </div>
             )}
           </div>

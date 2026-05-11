@@ -7,18 +7,10 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PU
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function test() {
-  const { data: allTechs } = await supabase.from('technicians').select('id').limit(1);
-  if (!allTechs || allTechs.length === 0) {
-    console.log('No techs found, RLS blocked or empty');
-    return;
-  }
-  const id = allTechs[0].id;
-  
   const { data, error } = await supabase
-    .from('technicians')
-    .select('id, profile_id, is_active, status, profiles!technicians_profile_id_fkey(full_name, phone, email)')
-    .eq('id', id)
-    .single();
+    .from('promotions')
+    .select('title, description, image_url, discount_percent, product_id, starts_at, ends_at')
+    .limit(1)
 
   console.log('Error:', error);
   console.log('Data:', data);

@@ -35,9 +35,10 @@ type RawOrder = {
 }
 
 export type Promotion = {
-  id: string; title: string; description: string | null
-  imageUrl: string | null; discountPercent: number | null
-  productId: string | null; endsAt: string | null
+  id: string; title: string; subtitle: string | null
+  iconName: string | null; gradientStart: string | null
+  gradientEnd: string | null; destination: string | null
+  sortOrder: number; isActive: boolean
 }
 
 // ── دوال التحويل ──
@@ -111,18 +112,17 @@ export async function getServices(): Promise<ServiceType[]> {
 export async function getActivePromotions(): Promise<Promotion[]> {
   try {
     const supabase = await createServerClient()
-    const now = new Date().toISOString()
     const { data } = await supabase
       .from('promotions')
       .select('*')
       .eq('is_active', true)
-      .lte('starts_at', now)
-      .gte('ends_at', now)
+      .order('sort_order', { ascending: true })
     if (!data) return []
     return data.map((p) => ({
-      id: p.id, title: p.title, description: p.description,
-      imageUrl: p.image_url, discountPercent: p.discount_percent,
-      productId: p.product_id, endsAt: p.ends_at,
+      id: p.id, title: p.title, subtitle: p.subtitle,
+      iconName: p.icon_name, gradientStart: p.gradient_start,
+      gradientEnd: p.gradient_end, destination: p.destination,
+      sortOrder: p.sort_order, isActive: p.is_active,
     }))
   } catch { return [] }
 }

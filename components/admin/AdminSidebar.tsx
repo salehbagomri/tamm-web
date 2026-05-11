@@ -9,6 +9,7 @@ const navItems = [
   { label: 'الداشبورد',      path: '/admin/dashboard',    icon: '📊' },
   { label: 'الطلبات',        path: '/admin/orders',        icon: '📋', countKey: 'pendingOrders' },
   { label: 'عروض الأسعار',   path: '/admin/quotes',        icon: '💬', countKey: 'pendingQuotes' },
+  { label: 'العروض',         path: '/admin/promotions',    icon: '🌟' },
   { label: 'المنتجات',       path: '/admin/products',      icon: '📦' },
   { label: 'الخدمات',        path: '/admin/services',      icon: '🔧' },
   { label: 'الفنيون',        path: '/admin/technicians',   icon: '👷' },
