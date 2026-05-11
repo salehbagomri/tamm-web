@@ -205,6 +205,7 @@ export async function getAvailableTechnicians(): Promise<AvailableTechnician[]> 
     .from('technicians')
     .select('id, profile_id, profiles(full_name, phone)')
     .eq('is_active', true)
+    .eq('status', 'available')
 
   if (error || !data) return []
 

@@ -8,36 +8,65 @@ function revalidateTechnicians() {
   revalidatePath('/admin/dashboard')
 }
 
-export async function addTechnician(identifier: string): Promise<{ error?: string }> {
+export type TechnicianCandidate = {
+  id: string
+  fullName: string
+  email: string | null
+  phone: string | null
+  role: string
+}
+
+export async function searchCandidate(identifier: string): Promise<{ error?: string, candidate?: TechnicianCandidate }> {
   const supabase = await createServerClient()
   const searchVal = identifier.trim().toLowerCase()
 
-  // جلب الملف الشخصي بالبريد أو الجوال
   const { data: profile, error: profileErr } = await supabase
     .from('profiles')
-    .select('id, role')
+    .select('id, full_name, email, phone, role')
     .or(`email.eq.${searchVal},phone.eq.${searchVal}`)
     .single()
 
   if (profileErr || !profile) return { error: 'لم يتم العثور على مستخدم بهذا البريد الإلكتروني أو رقم الجوال' }
-  if (profile.role !== 'technician') return { error: 'هذا المستخدم ليس فنياً — يجب أن يكون دوره "technician"' }
 
-  // تحقق من عدم وجوده مسبقاً
+  // Check if already in technicians
   const { data: existing } = await supabase
     .from('technicians')
     .select('id')
     .eq('profile_id', profile.id)
     .single()
 
-  if (existing) return { error: 'هذا الفني مضاف مسبقاً' }
+  if (existing) return { error: 'هذا الفني مضاف مسبقاً في النظام' }
 
-  // إضافة الفني
+  return {
+    candidate: {
+      id: profile.id,
+      fullName: profile.full_name ?? 'بدون اسم',
+      email: profile.email,
+      phone: profile.phone,
+      role: profile.role,
+    }
+  }
+}
+
+export async function promoteAndAddTechnician(profileId: string): Promise<{ error?: string }> {
+  const supabase = await createServerClient()
+
+  // 1. ترقية الدور إلى technician إذا لم يكن كذلك
+  const { error: roleErr } = await supabase
+    .from('profiles')
+    .update({ role: 'technician' })
+    .eq('id', profileId)
+
+  if (roleErr) { console.error('[promoteAndAddTechnician role]', roleErr); return { error: 'فشل ترقية المستخدم' } }
+
+  // 2. إضافته إلى جدول technicians
   const { error: insertErr } = await supabase.from('technicians').insert({
-    profile_id: profile.id,
+    profile_id: profileId,
     is_active: true,
+    status: 'available',
   })
 
-  if (insertErr) { console.error('[addTechnician]', insertErr); return { error: 'فشل إضافة الفني' } }
+  if (insertErr) { console.error('[promoteAndAddTechnician insert]', insertErr); return { error: 'فشل إضافة الفني' } }
 
   revalidateTechnicians()
   return {}
@@ -61,7 +90,7 @@ export async function toggleTechnicianAvailability(
   const supabase = await createServerClient()
   const { error } = await supabase
     .from('technicians')
-    .update({ is_active: isAvailable })
+    .update({ status: isAvailable ? 'available' : 'busy' })
     .eq('id', technicianId)
 
   if (error) return { error: 'فشل تحديث حالة الفني' }

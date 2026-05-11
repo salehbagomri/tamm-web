@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import type { AdminTechnician } from '@/lib/data/admin/technicians'
 import { removeTechnician, toggleTechnicianAvailability } from '@/lib/actions/admin/technicians'
 
@@ -82,12 +83,14 @@ export default function AdminTechniciansTable({ technicians }: { technicians: Ad
               <tr key={t.technicianId} style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
                 {/* Avatar + الاسم */}
                 <td style={{ padding: '0.875rem 1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--blue-mid), var(--blue-dark))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '1rem', flexShrink: 0 }}>
-                      {t.name.charAt(0)}
+                  <Link href={`/admin/technicians/${t.technicianId}`} style={{ textDecoration: 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--blue-mid), var(--blue-dark))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: '1rem', flexShrink: 0 }}>
+                        {t.name.charAt(0)}
+                      </div>
+                      <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.9rem' }}>{t.name}</span>
                     </div>
-                    <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.9rem' }}>{t.name}</span>
-                  </div>
+                  </Link>
                 </td>
                 <td style={{ padding: '0.875rem 1rem', fontSize: '0.875rem', color: 'var(--text-second)' }}>
                   {t.phone ?? '—'}
@@ -124,10 +127,12 @@ export default function AdminTechniciansTable({ technicians }: { technicians: Ad
           <div key={t.technicianId} style={{ padding: '1rem 1.25rem', borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--blue-mid), var(--blue-dark))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, flexShrink: 0 }}>
-                  {t.name.charAt(0)}
-                </div>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.9rem' }}>{t.name}</span>
+                <Link href={`/admin/technicians/${t.technicianId}`} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                  <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--blue-mid), var(--blue-dark))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, flexShrink: 0 }}>
+                    {t.name.charAt(0)}
+                  </div>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.9rem' }}>{t.name}</span>
+                </Link>
               </div>
               <Toggle checked={t.isAvailable} onToggle={() => handleToggle(t.technicianId, t.isAvailable)} />
             </div>
