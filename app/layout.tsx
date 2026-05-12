@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
-import { Harmattan } from 'next/font/google'
+import { Alexandria } from 'next/font/google'
 import './globals.css'
 
-// خط Harmattan من Google Fonts
-const harmattan = Harmattan({
+// خط Alexandria من Google Fonts
+const alexandria = Alexandria({
   subsets: ['arabic', 'latin'],
-  weight: ['400', '700'],
-  variable: '--font-harmattan',
+  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-alexandria',
   display: 'swap',
 })
 
@@ -22,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="ar" dir="rtl" className={harmattan.variable}>
-      <body className={harmattan.className}>
+    <html lang="ar" dir="rtl" className={alexandria.variable}>
+      <body className={alexandria.className}>
         {children}
       </body>
     </html>
