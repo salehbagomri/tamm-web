@@ -5,6 +5,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import ProductGallery from '@/components/customer/store/ProductGallery'
 import ProductInfo from '@/components/customer/store/ProductInfo'
 import RelatedProducts from '@/components/customer/store/RelatedProducts'
+import StickyPurchaseBar from '@/components/customer/store/StickyPurchaseBar'
 import type { Metadata } from 'next'
 
 interface Props {
@@ -47,7 +48,7 @@ export default async function ProductDetailPage({ params }: Props) {
   }
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '1.5rem' }}>
+    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '1.5rem', paddingBottom: '5rem' }}>
       {/* Breadcrumb */}
       <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.75rem', flexWrap: 'wrap' }}>
         {[
@@ -81,6 +82,7 @@ export default async function ProductDetailPage({ params }: Props) {
 
       {/* المنتجات المشابهة */}
       <RelatedProducts products={related} />
+      <StickyPurchaseBar product={product} isLoggedIn={isLoggedIn} />
     </div>
   )
 }
