@@ -41,6 +41,8 @@ function mapOrder(raw: any): Order {
     quoteRespondedAt: raw.quote_responded_at,
     rejectionReason: raw.rejection_reason,
     quoteAttachmentUrl: raw.quote_attachment_url,
+    paymentType: raw.payment_type ?? 'cash',
+    paymentMethodId: raw.payment_method_id ?? null,
   }
 }
 

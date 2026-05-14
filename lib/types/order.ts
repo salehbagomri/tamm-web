@@ -60,4 +60,6 @@ export type Order = {
   quoteRespondedAt: string | null
   rejectionReason: string | null
   quoteAttachmentUrl: string | null
+  paymentType: 'cash' | 'bank' | 'wallet'
+  paymentMethodId: string | null
 }

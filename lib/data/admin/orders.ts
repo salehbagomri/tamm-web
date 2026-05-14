@@ -27,6 +27,8 @@ export type AdminOrderRow = {
   customerName: string | null
   customerPhone: string | null
   technicianName: string | null
+  paymentType: 'cash' | 'bank' | 'wallet'
+  paymentMethodId: string | null
 }
 
 export type AdminOrderDetail = Order & {
@@ -64,6 +66,8 @@ function mapOrderRow(row: any): AdminOrderRow {
     customerName: profile?.full_name ?? null,
     customerPhone: profile?.phone ?? null,
     technicianName: techProfile?.full_name ?? null,
+    paymentType: row.payment_type ?? 'cash',
+    paymentMethodId: row.payment_method_id ?? null,
   }
 }
 
@@ -174,6 +178,8 @@ export async function getAdminOrderById(orderId: string): Promise<AdminOrderDeta
     quoteRespondedAt: data.quote_responded_at ?? null,
     rejectionReason: data.rejection_reason ?? null,
     quoteAttachmentUrl: data.quote_attachment_url ?? null,
+    paymentType: data.payment_type ?? 'cash',
+    paymentMethodId: data.payment_method_id ?? null,
     scheduledPeriod: data.scheduled_period ?? null,
     scheduledHour: data.scheduled_hour ?? null,
     technicianNotes: assignment?.technician_notes ?? null,
