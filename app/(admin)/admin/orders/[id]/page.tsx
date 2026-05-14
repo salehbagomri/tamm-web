@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { getAdminOrderById, getAvailableTechnicians } from '@/lib/data/admin/orders'
+import { getPaymentMethods } from '@/lib/data/payment'
 import AdminOrderHeader from '@/components/admin/orders/AdminOrderHeader'
 import AdminCustomerInfo from '@/components/admin/orders/AdminCustomerInfo'
 import AdminOrderActions from '@/components/admin/orders/AdminOrderActions'
@@ -25,12 +26,17 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'manager') redirect('/home')
 
-  const [order, technicians] = await Promise.all([
+  const [order, technicians, paymentMethods] = await Promise.all([
     getAdminOrderById(id),
     getAvailableTechnicians(),
+    getPaymentMethods(),
   ])
 
   if (!order) notFound()
+
+  const paymentMethod = order.paymentMethodId
+    ? (paymentMethods.find((m) => m.id === order.paymentMethodId) ?? null)
+    : null
 
   return (
     <AdminOrderDetailRealtimeWrapper orderId={id}>
@@ -50,7 +56,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
         >
           {/* العمود الرئيسي */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <AdminCustomerInfo order={order} />
+            <AdminCustomerInfo order={order} paymentMethod={paymentMethod} />
           </div>
 
           {/* العمود الجانبي */}

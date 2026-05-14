@@ -6,6 +6,8 @@ import { useCart } from '@/lib/store/cart-context'
 import { createProductOrder, type CheckoutData } from '@/lib/actions/orders'
 import Input from '@/components/ui/Input'
 import { formatPrice } from '@/lib/utils/format'
+import PaymentMethodSelector from './PaymentMethodSelector'
+import type { PaymentMethod } from '@/lib/types/payment'
 
 const TIME_SLOTS = [
   { key: '8AM-12PM', label: 'صباحاً (8 ص - 12 م)' },
@@ -16,9 +18,10 @@ const TIME_SLOTS = [
 interface CheckoutFormProps {
   initialAddress?: string | null
   initialPhone?: string | null
+  paymentMethods: PaymentMethod[]
 }
 
-export default function CheckoutForm({ initialAddress, initialPhone }: CheckoutFormProps) {
+export default function CheckoutForm({ initialAddress, initialPhone, paymentMethods }: CheckoutFormProps) {
   const router = useRouter()
   const { items, totalAmount, clearCart } = useCart()
   const [step, setStep] = useState(1)
@@ -34,11 +37,21 @@ export default function CheckoutForm({ initialAddress, initialPhone }: CheckoutF
   })
   const [errors, setErrors] = useState<Partial<CheckoutData>>({})
 
+  const [selectedPaymentType, setSelectedPaymentType] = useState<'cash' | 'bank' | 'wallet'>('cash')
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null)
+  const [paymentError, setPaymentError] = useState('')
+
   const today = new Date().toISOString().split('T')[0]
 
   function update(key: keyof CheckoutData, value: string) {
     setFormData((prev) => ({ ...prev, [key]: value }))
     setErrors((prev) => ({ ...prev, [key]: undefined }))
+  }
+
+  function handlePaymentChange(type: 'cash' | 'bank' | 'wallet', methodId: string | null) {
+    setSelectedPaymentType(type)
+    setSelectedPaymentMethodId(methodId)
+    setPaymentError('')
   }
 
   function validateStep1(): boolean {
@@ -58,10 +71,23 @@ export default function CheckoutForm({ initialAddress, initialPhone }: CheckoutF
     return Object.keys(e).length === 0
   }
 
+  function validatePayment(): boolean {
+    if (selectedPaymentType === 'bank' && !selectedPaymentMethodId) {
+      setPaymentError('يرجى اختيار البنك أو الصراف')
+      return false
+    }
+    if (selectedPaymentType === 'wallet' && !selectedPaymentMethodId) {
+      setPaymentError('يرجى اختيار المحفظة')
+      return false
+    }
+    return true
+  }
+
   async function handleSubmit() {
+    if (!validatePayment()) return
     setLoading(true)
     setError('')
-    const result = await createProductOrder(items, formData)
+    const result = await createProductOrder(items, formData, selectedPaymentType, selectedPaymentMethodId)
     if ('error' in result) {
       setError(result.error)
       setLoading(false)
@@ -70,6 +96,15 @@ export default function CheckoutForm({ initialAddress, initialPhone }: CheckoutF
       router.push(`/order-success?order=${result.orderNumber}`)
     }
   }
+
+  const selectedPaymentMethod = paymentMethods.find((m) => m.id === selectedPaymentMethodId) ?? null
+
+  const paymentLabel =
+    selectedPaymentType === 'cash'
+      ? '💵 كاش عند الاستلام'
+      : selectedPaymentType === 'bank'
+      ? selectedPaymentMethod ? `🏦 ${selectedPaymentMethod.name}` : '🏦 بنك أو صراف'
+      : selectedPaymentMethod ? `📱 ${selectedPaymentMethod.name}` : '📱 محفظة إلكترونية'
 
   // مؤشر الخطوات
   const StepIndicator = () => (
@@ -284,6 +319,27 @@ export default function CheckoutForm({ initialAddress, initialPhone }: CheckoutF
                   <p style={{ fontSize: '0.875rem', color: 'var(--text-primary)', margin: 0, fontWeight: 500 }}>{row.value || '—'}</p>
                 </div>
               ))}
+            </div>
+
+            {/* طريقة الدفع */}
+            <PaymentMethodSelector
+              paymentMethods={paymentMethods}
+              onChange={handlePaymentChange}
+            />
+
+            {paymentError && (
+              <p style={{ color: 'var(--error)', fontSize: '0.8125rem', margin: '-0.75rem 0 0' }}>{paymentError}</p>
+            )}
+
+            {/* ملخص طريقة الدفع المختارة */}
+            <div style={{ backgroundColor: 'var(--bg-surface2)', borderRadius: '10px', padding: '0.875rem' }}>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-faint)', margin: '0 0 0.25rem' }}>طريقة الدفع المختارة</p>
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-primary)', margin: 0, fontWeight: 500 }}>{paymentLabel}</p>
+              {selectedPaymentMethod?.accountNumber && (
+                <p style={{ fontSize: '0.8125rem', color: 'var(--text-faint)', margin: '0.25rem 0 0' }}>
+                  رقم الحساب: {selectedPaymentMethod.accountNumber}
+                </p>
+              )}
             </div>
 
             {/* الإجمالي */}

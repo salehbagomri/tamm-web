@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase/server'
 import { getOrderById } from '@/lib/data/orders'
+import { getPaymentMethods } from '@/lib/data/payment'
 import OrderStatusTracker from '@/components/customer/orders/OrderStatusTracker'
 import OrderDetailCard from '@/components/customer/orders/OrderDetailCard'
 import OrderItemsList from '@/components/customer/orders/OrderItemsList'
@@ -24,8 +25,15 @@ export default async function OrderDetailPage({ params }: Props) {
   
   if (!user) redirect('/login')
 
-  const order = await getOrderById(id, user.id)
+  const [order, paymentMethods] = await Promise.all([
+    getOrderById(id, user.id),
+    getPaymentMethods(),
+  ])
   if (!order) notFound()
+
+  const paymentMethod = order.paymentMethodId
+    ? (paymentMethods.find((m) => m.id === order.paymentMethodId) ?? null)
+    : null
 
   return (
     <OrderDetailRealtimeWrapper orderId={id}>
@@ -46,7 +54,7 @@ export default async function OrderDetailPage({ params }: Props) {
             <OrderStatusTracker status={order.status} />
           )}
 
-          <OrderDetailCard order={order} />
+          <OrderDetailCard order={order} paymentMethod={paymentMethod} />
 
           {order.orderType === 'quote_request' && (
             <QuoteSection order={order} />

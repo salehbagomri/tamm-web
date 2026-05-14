@@ -46,7 +46,9 @@ function generateOrderNumber(): string {
 // إنشاء طلب منتجات من السلة
 export async function createProductOrder(
   cartItems: CartItemInput[],
-  checkoutData: CheckoutData
+  checkoutData: CheckoutData,
+  paymentType: 'cash' | 'bank' | 'wallet' = 'cash',
+  paymentMethodId: string | null = null
 ): Promise<ActionResult> {
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -72,6 +74,8 @@ export async function createProductOrder(
       preferred_date: checkoutData.preferredDate || null,
       preferred_time_slot: checkoutData.preferredTimeSlot || null,
       notes: checkoutData.notes || null,
+      payment_type: paymentType,
+      payment_method_id: paymentMethodId,
     })
     .select('id, order_number')
     .single()

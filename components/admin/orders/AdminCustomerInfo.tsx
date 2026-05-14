@@ -1,4 +1,5 @@
 import type { AdminOrderDetail } from '@/lib/data/admin/orders'
+import type { PaymentMethod } from '@/lib/types/payment'
 import { formatPrice } from '@/lib/utils/format'
 
 const TIME_SLOT_LABELS: Record<string, string> = {
@@ -7,7 +8,7 @@ const TIME_SLOT_LABELS: Record<string, string> = {
   '4PM-8PM':  'مساءً (4 م - 8 م)',
 }
 
-export default function AdminCustomerInfo({ order }: { order: AdminOrderDetail }) {
+export default function AdminCustomerInfo({ order, paymentMethod }: { order: AdminOrderDetail; paymentMethod?: PaymentMethod | null }) {
   const customer = order.customerProfile
 
   return (
@@ -59,6 +60,42 @@ export default function AdminCustomerInfo({ order }: { order: AdminOrderDetail }
           </div>
         </div>
       )}
+
+      {/* طريقة الدفع */}
+      <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1.5rem' }}>
+        <h3 style={{ margin: '0 0 1.25rem', fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+          💳 طريقة الدفع
+        </h3>
+        <div style={{ backgroundColor: 'var(--bg-surface2)', borderRadius: '10px', padding: '0.875rem 1rem' }}>
+          {order.paymentType === 'cash' && (
+            <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>💵 كاش عند الاستلام</p>
+          )}
+          {order.paymentType === 'bank' && (
+            <div>
+              <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>
+                🏦 {paymentMethod?.name ?? 'بنك أو صراف'}
+              </p>
+              {paymentMethod?.accountNumber && (
+                <p style={{ margin: '0.25rem 0 0', fontSize: '0.8125rem', color: 'var(--text-faint)' }}>
+                  رقم الحساب: {paymentMethod.accountNumber}
+                </p>
+              )}
+            </div>
+          )}
+          {order.paymentType === 'wallet' && (
+            <div>
+              <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>
+                📱 {paymentMethod?.name ?? 'محفظة إلكترونية'}
+              </p>
+              {paymentMethod?.accountNumber && (
+                <p style={{ margin: '0.25rem 0 0', fontSize: '0.8125rem', color: 'var(--text-faint)' }}>
+                  رقم الحساب: {paymentMethod.accountNumber}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* ملاحظات العميل */}
       {order.notes && (
