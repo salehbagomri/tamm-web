@@ -36,7 +36,7 @@ export async function proxy(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const path = request.nextUrl.pathname
 
-  // ── مسارات Auth: إذا جلسة موجودة → وجّه حسب الدور ──
+  // ── مسارات Auth: إذا جلسة موجودة → وجّه حسب الدور والإتمام ──
   if (
     path.startsWith('/login') ||
     path.startsWith('/register') ||
@@ -44,9 +44,30 @@ export async function proxy(request: NextRequest) {
     path.startsWith('/reset-password')
   ) {
     if (user) {
-      const role = await getUserRole(supabase, user.id)
-      if (role === 'manager') return NextResponse.redirect(new URL('/admin/dashboard', request.url))
-      if (role === 'technician') return NextResponse.redirect(new URL('/access-denied', request.url))
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, is_complete')
+        .eq('id', user.id)
+        .single()
+      if (!profile?.is_complete) return NextResponse.redirect(new URL('/onboarding', request.url))
+      if (profile.role === 'manager') return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+      if (profile.role === 'technician') return NextResponse.redirect(new URL('/access-denied', request.url))
+      return NextResponse.redirect(new URL('/home', request.url))
+    }
+    return response
+  }
+
+  // ── /onboarding: تتطلب جلسة نشطة + is_complete=false ──
+  if (path.startsWith('/onboarding')) {
+    if (!user) return NextResponse.redirect(new URL('/login', request.url))
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, is_complete')
+      .eq('id', user.id)
+      .single()
+    if (profile?.is_complete) {
+      if (profile.role === 'manager') return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+      if (profile.role === 'technician') return NextResponse.redirect(new URL('/access-denied', request.url))
       return NextResponse.redirect(new URL('/home', request.url))
     }
     return response

@@ -48,3 +48,22 @@ export async function signOutAction(): Promise<void> {
   await supabase.auth.signOut()
   redirect('/login')
 }
+
+export async function completeProfile(data: {
+  fullName: string
+  phone: string
+}): Promise<{ error: string | null }> {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'يرجى تسجيل الدخول أولاً' }
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ full_name: data.fullName, phone: data.phone, is_complete: true })
+    .eq('id', user.id)
+
+  if (error) return { error: 'حدث خطأ أثناء حفظ البيانات، يرجى المحاولة مرة أخرى' }
+
+  revalidatePath('/', 'layout')
+  return { error: null }
+}

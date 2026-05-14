@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { getUserRole } from '@/lib/utils/auth'
 
 // يستقبل OAuth redirect من Supabase ويتبادل الكود بجلسة
 export async function GET(request: NextRequest) {
@@ -15,10 +14,15 @@ export async function GET(request: NextRequest) {
     if (!error) {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        const role = await getUserRole(supabase, user.id)
-        if (role === 'manager') {
-          return NextResponse.redirect(new URL('/admin/dashboard', origin))
-        }
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, is_complete')
+          .eq('id', user.id)
+          .single()
+
+        if (!profile?.is_complete) return NextResponse.redirect(new URL('/onboarding', origin))
+        if (profile.role === 'manager') return NextResponse.redirect(new URL('/admin/dashboard', origin))
+        if (profile.role === 'technician') return NextResponse.redirect(new URL('/access-denied', origin))
         return NextResponse.redirect(new URL(next, origin))
       }
     }
