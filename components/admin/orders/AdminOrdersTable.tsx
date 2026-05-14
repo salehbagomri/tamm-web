@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { AdminOrderRow } from '@/lib/data/admin/orders'
 import type { OrderStatus, OrderType } from '@/lib/types/order'
+import { formatPrice } from '@/lib/utils/format'
 
 const statusLabels: Record<OrderStatus, string> = {
   pending: 'معلق', confirmed: 'مؤكد', assigned: 'مُعيَّن',
@@ -86,7 +87,7 @@ export default function AdminOrdersTable({ orders, totalCount }: { orders: Admin
                   {o.technicianName ?? '—'}
                 </td>
                 <td style={{ padding: '0.875rem 1rem', whiteSpace: 'nowrap', fontSize: '0.875rem', color: 'var(--text-primary)', fontWeight: 500 }}>
-                  {o.totalAmount > 0 ? `${o.totalAmount.toLocaleString('ar-SA')} ر.س` : 'عند الطلب'}
+                  {o.totalAmount > 0 ? formatPrice(o.totalAmount) : 'عند الطلب'}
                 </td>
                 <td style={{ padding: '0.875rem 1rem', fontSize: '0.8rem', color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>
                   {formatDate(o.createdAt)}
@@ -115,7 +116,7 @@ export default function AdminOrdersTable({ orders, totalCount }: { orders: Admin
               <Badge label={typeLabels[o.orderType]} bg={typeColors[o.orderType].bg} text={typeColors[o.orderType].text} />
               <span style={{ fontSize: '0.75rem', color: 'var(--text-faint)' }}>{formatDate(o.createdAt)}</span>
               <span style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', fontWeight: 600 }}>
-                {o.totalAmount > 0 ? `${o.totalAmount.toLocaleString('ar-SA')} ر.س` : 'عند الطلب'}
+                {o.totalAmount > 0 ? formatPrice(o.totalAmount) : 'عند الطلب'}
               </span>
             </div>
             <Link href={`/admin/orders/${o.id}`} style={{ display: 'inline-block', padding: '0.375rem 0.875rem', borderRadius: '8px', fontSize: '0.8125rem', fontWeight: 600, backgroundColor: 'rgba(21,118,212,0.1)', color: 'var(--blue-light)', textDecoration: 'none' }}>

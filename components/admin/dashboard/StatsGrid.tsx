@@ -1,5 +1,6 @@
 import StatsCard from './StatsCard'
 import type { DashboardStats } from '@/lib/data/admin/dashboard'
+import { formatPrice } from '@/lib/utils/format'
 
 interface StatsGridProps {
   stats: DashboardStats
@@ -72,7 +73,7 @@ export default function StatsGrid({ stats }: StatsGridProps) {
         />
         <StatsCard
           title="إجمالي الإيرادات"
-          value={`${stats.totalRevenue.toLocaleString('ar-SA')} ر.س`}
+          value={formatPrice(stats.totalRevenue)}
           icon="💰"
           color="success"
           subtitle="من الطلبات المكتملة"

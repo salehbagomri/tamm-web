@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { ServiceType } from '@/lib/types/service'
 import { deleteService, toggleServiceActive } from '@/lib/actions/admin/services'
 import Link from 'next/link'
+import { formatPrice } from '@/lib/utils/format'
 
 const CAT_LABELS: Record<string, string> = {
   ac_install: 'تركيب تكييف', ac_repair: 'إصلاح تكييف',
@@ -89,7 +90,7 @@ export default function AdminServicesTable({ services }: { services: ServiceType
                   </span>
                 </td>
                 <td style={{ padding: '0.875rem 1rem', fontSize: '0.875rem', color: 'var(--text-primary)', fontWeight: 500, whiteSpace: 'nowrap' }}>
-                  {s.isQuoteBased ? <span style={{ color: 'var(--warning)' }}>عند الطلب</span> : `${s.basePrice.toLocaleString('ar-SA')} ر.س`}
+                  {s.isQuoteBased ? <span style={{ color: 'var(--warning)' }}>عند الطلب</span> : formatPrice(s.basePrice)}
                 </td>
                 <td style={{ padding: '0.875rem 1rem' }}>
                   {s.isQuoteBased && <span style={{ padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600, backgroundColor: 'rgba(245,166,35,0.1)', color: 'var(--warning)' }}>💬 عرض سعر</span>}

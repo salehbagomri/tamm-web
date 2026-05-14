@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import type { AdminOrderDetail } from '@/lib/data/admin/orders'
 import { sendQuote, uploadQuoteAttachment } from '@/lib/actions/admin/orders'
+import { formatPrice } from '@/lib/utils/format'
 
 export default function QuoteManagement({ order }: { order: AdminOrderDetail }) {
   const [showForm, setShowForm] = useState(false)
@@ -111,7 +112,7 @@ export default function QuoteManagement({ order }: { order: AdminOrderDetail }) 
       {qs === 'sent' && !showForm && (
         <div style={{ padding: '1.25rem', backgroundColor: 'rgba(21,118,212,0.06)', border: '1px solid rgba(21,118,212,0.2)', borderRadius: '12px' }}>
           <p style={{ margin: '0 0 0.5rem', color: 'var(--blue-light)', fontWeight: 700 }}>📨 تم إرسال العرض</p>
-          {order.quotePrice && <p style={{ margin: '0 0 0.25rem', color: 'var(--text-second)', fontSize: '0.875rem' }}>السعر: <strong style={{ color: 'var(--text-primary)' }}>{order.quotePrice.toLocaleString('ar-SA')} ر.س</strong></p>}
+          {order.quotePrice && <p style={{ margin: '0 0 0.25rem', color: 'var(--text-second)', fontSize: '0.875rem' }}>السعر: <strong style={{ color: 'var(--text-primary)' }}>{formatPrice(order.quotePrice)}</strong></p>}
           {order.quoteDetails && <p style={{ margin: '0 0 0.25rem', color: 'var(--text-second)', fontSize: '0.875rem' }}>{order.quoteDetails}</p>}
           {order.quoteDuration && <p style={{ margin: 0, color: 'var(--text-faint)', fontSize: '0.8rem' }}>المدة: {order.quoteDuration}</p>}
           <p style={{ margin: '0.75rem 0 0', fontSize: '0.8125rem', color: 'var(--text-faint)' }}>في انتظار رد العميل...</p>

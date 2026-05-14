@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createServiceOrder, type BookingData } from '@/lib/actions/orders'
 import type { ServiceType } from '@/lib/types/service'
 import Input from '@/components/ui/Input'
+import { formatPrice } from '@/lib/utils/format'
 
 const TIME_SLOTS = [
   { key: '8AM-12PM', label: 'صباحاً (8 ص - 12 م)' },
@@ -87,7 +88,7 @@ export default function ServiceBookingForm({ service, initialAddress, initialPho
         <div style={{ flex: 1 }}>
           <p style={{ fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 0.2rem' }}>{service.name}</p>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-second)', margin: 0 }}>
-            {service.isQuoteBased ? 'سيتم تحديد السعر حسب الموقع' : `${service.basePrice.toLocaleString('ar-SA')} ر.س`}
+            {service.isQuoteBased ? 'سيتم تحديد السعر حسب الموقع' : formatPrice(service.basePrice)}
           </p>
         </div>
       </div>

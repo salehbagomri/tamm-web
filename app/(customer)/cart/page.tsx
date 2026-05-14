@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/lib/store/cart-context'
 import CartItemRow from '@/components/customer/cart/CartItemRow'
+import { formatPrice } from '@/lib/utils/format'
 
 export default function CartPage() {
   const { items, totalAmount } = useCart()
@@ -67,18 +68,18 @@ export default function CartPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginBottom: '1.25rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-second)', fontSize: '0.9rem' }}>المنتجات</span>
-              <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{productTotal.toLocaleString('ar-SA')} ر.س</span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{formatPrice(productTotal)}</span>
             </div>
             {installTotal > 0 && (
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: 'var(--text-second)', fontSize: '0.9rem' }}>التركيب</span>
-                <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{installTotal.toLocaleString('ar-SA')} ر.س</span>
+                <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{formatPrice(installTotal)}</span>
               </div>
             )}
             <div style={{ height: '1px', backgroundColor: 'var(--border)', margin: '0.5rem 0' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: '1.0625rem' }}>الإجمالي</span>
-              <span style={{ color: 'var(--blue-light)', fontWeight: 700, fontSize: '1.25rem' }}>{totalAmount.toLocaleString('ar-SA')} ر.س</span>
+              <span style={{ color: 'var(--blue-light)', fontWeight: 700, fontSize: '1.25rem' }}>{formatPrice(totalAmount)}</span>
             </div>
           </div>
 

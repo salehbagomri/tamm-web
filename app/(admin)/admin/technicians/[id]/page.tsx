@@ -1,6 +1,7 @@
 import { getAdminTechnicianById, getAdminTechnicianOrders } from '@/lib/data/admin/technicians'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { formatPrice } from '@/lib/utils/format'
 
 export const metadata = { title: 'تفاصيل الفني — تمّ' }
 
@@ -83,7 +84,7 @@ export default async function TechnicianDetailPage({ params }: { params: Promise
                     {new Date(o.createdAt).toLocaleDateString('ar-SA')}
                   </span>
                   <div style={{ marginTop: '0.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    {o.totalAmount} ريال
+                    {formatPrice(o.totalAmount)}
                   </div>
                 </div>
               </div>

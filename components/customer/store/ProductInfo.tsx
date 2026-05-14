@@ -5,6 +5,7 @@ import Link from 'next/link'
 import type { Product } from '@/lib/types/product'
 import { useCart } from '@/lib/store/cart-context'
 import Badge from '@/components/ui/Badge'
+import { formatPrice } from '@/lib/utils/format'
 
 const CATEGORY_LABELS: Record<string, string> = {
   ac: 'مكيف', solar_panel: 'لوح شمسي', solar_battery: 'بطارية',
@@ -92,11 +93,11 @@ export default function ProductInfo({ product, isLoggedIn }: ProductInfoProps) {
           <>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                {totalPrice?.toLocaleString('ar-SA')} ر.س
+                {formatPrice(totalPrice)}
               </span>
               {product.oldPrice && (
                 <span style={{ fontSize: '1rem', color: 'var(--text-faint)', textDecoration: 'line-through' }}>
-                  {product.oldPrice.toLocaleString('ar-SA')}
+                  {formatPrice(product.oldPrice)}
                 </span>
               )}
               {discountPct && (
@@ -111,7 +112,7 @@ export default function ProductInfo({ product, isLoggedIn }: ProductInfoProps) {
             </div>
             {includeInstall && product.installationPrice > 0 && (
               <p style={{ fontSize: '0.8125rem', color: 'var(--text-faint)', margin: '0.25rem 0 0' }}>
-                يشمل: السعر الأساسي ({product.price?.toLocaleString('ar-SA')} ر.س) + التركيب ({product.installationPrice.toLocaleString('ar-SA')} ر.س)
+                يشمل: السعر الأساسي ({formatPrice(product.price)}) + التركيب ({formatPrice(product.installationPrice)})
               </p>
             )}
           </>
@@ -165,7 +166,7 @@ export default function ProductInfo({ product, isLoggedIn }: ProductInfoProps) {
           <span style={{ color: 'var(--text-primary)', fontSize: '0.9375rem' }}>
             تضمين التركيب{' '}
             <span style={{ color: 'var(--blue-light)', fontWeight: 600 }}>
-              (+{product.installationPrice.toLocaleString('ar-SA')} ر.س)
+              (+{formatPrice(product.installationPrice)})
             </span>
           </span>
         </label>

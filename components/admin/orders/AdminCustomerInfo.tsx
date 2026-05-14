@@ -1,4 +1,5 @@
 import type { AdminOrderDetail } from '@/lib/data/admin/orders'
+import { formatPrice } from '@/lib/utils/format'
 
 const TIME_SLOT_LABELS: Record<string, string> = {
   '8AM-12PM': 'صباحاً (8 ص - 12 م)',
@@ -99,10 +100,10 @@ export default function AdminCustomerInfo({ order }: { order: AdminOrderDetail }
                 </div>
                 <div style={{ textAlign: 'left' }}>
                   <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 600 }}>
-                    {item.totalPrice > 0 ? `${item.totalPrice.toLocaleString('ar-SA')} ر.س` : 'عند الطلب'}
+                    {item.totalPrice > 0 ? formatPrice(item.totalPrice) : 'عند الطلب'}
                   </p>
                   <p style={{ margin: '0.125rem 0 0', fontSize: '0.75rem', color: 'var(--text-faint)' }}>
-                    {item.unitPrice > 0 ? `${item.unitPrice.toLocaleString('ar-SA')} × ${item.quantity}` : ''}
+                    {item.unitPrice > 0 ? `${formatPrice(item.unitPrice)} × ${item.quantity}` : ''}
                   </p>
                 </div>
               </div>
@@ -117,7 +118,7 @@ export default function AdminCustomerInfo({ order }: { order: AdminOrderDetail }
           }}>
             <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>الإجمالي</span>
             <span style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--blue-light)' }}>
-              {order.totalAmount > 0 ? `${order.totalAmount.toLocaleString('ar-SA')} ر.س` : 'عند الطلب'}
+              {order.totalAmount > 0 ? formatPrice(order.totalAmount) : 'عند الطلب'}
             </span>
           </div>
         </div>

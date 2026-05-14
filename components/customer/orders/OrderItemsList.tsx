@@ -1,4 +1,5 @@
 import type { Order } from '@/lib/types/order'
+import { formatPrice } from '@/lib/utils/format'
 
 export default function OrderItemsList({ order }: { order: Order }) {
   if (!order.items || order.items.length === 0) return null
@@ -24,7 +25,7 @@ export default function OrderItemsList({ order }: { order: Order }) {
                 </p>
               </div>
               <p style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                {item.unitPrice > 0 ? `${(item.unitPrice * item.quantity).toLocaleString('ar-SA')} ر.س` : '—'}
+                {item.unitPrice > 0 ? formatPrice(item.unitPrice * item.quantity) : '—'}
               </p>
             </div>
           )
@@ -34,7 +35,7 @@ export default function OrderItemsList({ order }: { order: Order }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.5rem' }}>
           <span style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-primary)' }}>الإجمالي الكلي</span>
           <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--blue-light)' }}>
-            {order.totalAmount > 0 ? `${order.totalAmount.toLocaleString('ar-SA')} ر.س` : '—'}
+            {order.totalAmount > 0 ? formatPrice(order.totalAmount) : '—'}
           </span>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { DashboardStats } from '@/lib/data/admin/dashboard'
 import type { OrderStatus, OrderType } from '@/lib/types/order'
+import { formatPrice } from '@/lib/utils/format'
 
 interface RecentOrdersTableProps {
   orders: DashboardStats['recentOrders']
@@ -130,9 +131,7 @@ export default function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
                     </td>
                     <td style={{ padding: '0.875rem 1rem', whiteSpace: 'nowrap' }}>
                       <span style={{ fontSize: '0.875rem', color: 'var(--text-primary)', fontWeight: 500 }}>
-                        {order.totalAmount > 0
-                          ? `${order.totalAmount.toLocaleString('ar-SA')} ر.س`
-                          : 'عند الطلب'}
+                        {order.totalAmount > 0 ? formatPrice(order.totalAmount) : 'عند الطلب'}
                       </span>
                     </td>
                     <td style={{ padding: '0.875rem 1rem', whiteSpace: 'nowrap' }}>
@@ -196,7 +195,7 @@ export default function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.375rem' }}>
                     <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      {order.totalAmount > 0 ? `${order.totalAmount.toLocaleString('ar-SA')} ر.س` : 'عند الطلب'}
+                      {order.totalAmount > 0 ? formatPrice(order.totalAmount) : 'عند الطلب'}
                     </span>
                     <Link href={`/admin/orders/${order.id}`} style={{
                       padding: '0.25rem 0.75rem',

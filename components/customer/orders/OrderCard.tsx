@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Order } from '@/lib/types/order'
+import { formatPrice } from '@/lib/utils/format'
 
 export const ORDER_STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
   pending: { label: 'معلق', color: 'var(--warning)', bg: 'rgba(245,166,35,0.1)' },
@@ -52,7 +53,7 @@ export default function OrderCard({ order }: { order: Order }) {
         </div>
         <div style={{ textAlign: 'left' }}>
           <p style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--blue-light)', margin: 0 }}>
-            {order.totalAmount > 0 ? `${order.totalAmount.toLocaleString('ar-SA')} ر.س` : '—'}
+            {order.totalAmount > 0 ? formatPrice(order.totalAmount) : '—'}
           </p>
         </div>
       </div>

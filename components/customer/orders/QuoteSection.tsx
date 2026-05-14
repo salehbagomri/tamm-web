@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { Order } from '@/lib/types/order'
 import { respondToQuote } from '@/lib/actions/orders'
+import { formatPrice } from '@/lib/utils/format'
 
 export default function QuoteSection({ order }: { order: Order }) {
   const [loadingAction, setLoadingAction] = useState<'accepted' | 'rejected' | null>(null)
@@ -40,7 +41,7 @@ export default function QuoteSection({ order }: { order: Order }) {
           <div style={{ padding: '1.5rem', backgroundColor: 'var(--bg-surface2)', borderRadius: '12px', border: '1px solid var(--border)' }}>
             <p style={{ fontSize: '0.875rem', color: 'var(--text-second)', margin: '0 0 0.5rem' }}>السعر المقترح</p>
             <p style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--blue-light)', margin: '0 0 1rem' }}>
-              {order.quotePrice?.toLocaleString('ar-SA') ?? '—'} ر.س
+              {formatPrice(order.quotePrice)}
             </p>
             
             {order.quoteDetails && (

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useCart } from '@/lib/store/cart-context'
 import { createProductOrder, type CheckoutData } from '@/lib/actions/orders'
 import Input from '@/components/ui/Input'
+import { formatPrice } from '@/lib/utils/format'
 
 const TIME_SLOTS = [
   { key: '8AM-12PM', label: 'صباحاً (8 ص - 12 م)' },
@@ -257,13 +258,13 @@ export default function CheckoutForm({ initialAddress, initialPhone }: CheckoutF
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
                     <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{item.quantity}x {item.name}</span>
                     <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
-                      {item.isPriceOnRequest ? 'عند الطلب' : `${((item.price ?? 0) * item.quantity).toLocaleString('ar-SA')} ر.س`}
+                      {item.isPriceOnRequest ? 'عند الطلب' : formatPrice((item.price ?? 0) * item.quantity)}
                     </span>
                   </div>
                   {item.includeInstallation && item.installationPrice > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', paddingRight: '1.25rem' }}>
                       <span style={{ color: 'var(--blue-light)' }}>🛠 خدمة التركيب</span>
-                      <span style={{ color: 'var(--text-second)' }}>+ {(item.installationPrice * item.quantity).toLocaleString('ar-SA')} ر.س</span>
+                      <span style={{ color: 'var(--text-second)' }}>+ {formatPrice(item.installationPrice * item.quantity)}</span>
                     </div>
                   )}
                 </div>
@@ -288,7 +289,7 @@ export default function CheckoutForm({ initialAddress, initialPhone }: CheckoutF
             {/* الإجمالي */}
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', backgroundColor: 'rgba(21,118,212,0.08)', borderRadius: '12px', border: '1px solid rgba(21,118,212,0.2)' }}>
               <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>الإجمالي</span>
-              <span style={{ fontWeight: 700, fontSize: '1.25rem', color: 'var(--blue-light)' }}>{totalAmount.toLocaleString('ar-SA')} ر.س</span>
+              <span style={{ fontWeight: 700, fontSize: '1.25rem', color: 'var(--blue-light)' }}>{formatPrice(totalAmount)}</span>
             </div>
 
             {error && (

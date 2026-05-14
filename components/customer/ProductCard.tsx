@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import type { Product } from '@/lib/types/product'
+import { formatPrice } from '@/lib/utils/format'
 
 const CATEGORY_LABELS: Record<string, string> = {
   ac: 'مكيف', solar_panel: 'لوح شمسي', solar_battery: 'بطارية',
@@ -106,11 +107,11 @@ export default function ProductCard({ product }: ProductCardProps) {
           ) : (
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                {product.price?.toLocaleString('ar-SA')} ر.س
+                {formatPrice(product.price)}
               </span>
               {product.oldPrice && (
                 <span style={{ fontSize: '0.8125rem', color: 'var(--text-faint)', textDecoration: 'line-through' }}>
-                  {product.oldPrice.toLocaleString('ar-SA')}
+                  {formatPrice(product.oldPrice)}
                 </span>
               )}
             </div>

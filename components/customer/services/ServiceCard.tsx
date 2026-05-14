@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { ServiceType } from '@/lib/types/service'
+import { formatPrice } from '@/lib/utils/format'
 
 const SERVICE_ICONS: Record<string, React.ReactNode> = {
   ac_install:        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="3" width="20" height="10" rx="2"/><path d="M6 13v3m4-3v5m4-5v3M2 8h20"/></svg>,
@@ -75,7 +76,7 @@ export default function ServiceCard({ service }: { service: ServiceType }) {
       }}>
         <div>
           <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-            {service.isQuoteBased ? 'حسب الموقع' : `${service.basePrice.toLocaleString('ar-SA')} ر.س`}
+            {service.isQuoteBased ? 'حسب الموقع' : formatPrice(service.basePrice)}
           </span>
         </div>
         <Link href={`/services/${service.id}`} style={{

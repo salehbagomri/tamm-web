@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { AdminOrderRow } from '@/lib/data/admin/orders'
+import { formatPrice } from '@/lib/utils/format'
 
 const quoteStatusLabels: Record<string, string> = {
   pending: 'بانتظار الإرسال', sent: 'مرسل', accepted: 'مقبول', rejected: 'مرفوض',
@@ -62,7 +63,7 @@ export default function QuotesTable({ orders, totalCount }: { orders: AdminOrder
                     <Badge label={quoteStatusLabels[qs] ?? qs} bg={qc.bg} text={qc.text} />
                   </td>
                   <td style={{ padding: '0.875rem 1rem', fontSize: '0.875rem', color: 'var(--text-primary)', fontWeight: 500, whiteSpace: 'nowrap' }}>
-                    {o.quotePrice ? `${o.quotePrice.toLocaleString('ar-SA')} ر.س` : '—'}
+                    {o.quotePrice ? formatPrice(o.quotePrice) : '—'}
                   </td>
                   <td style={{ padding: '0.875rem 1rem', fontSize: '0.8rem', color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>
                     {o.createdAt ? new Date(o.createdAt).toLocaleDateString('ar-SA') : '—'}
@@ -94,7 +95,7 @@ export default function QuotesTable({ orders, totalCount }: { orders: AdminOrder
               <p style={{ margin: '0 0 0.375rem', fontSize: '0.875rem', color: 'var(--text-primary)' }}>{o.customerName ?? '—'}</p>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.875rem', color: 'var(--success)', fontWeight: 600 }}>
-                  {o.quotePrice ? `${o.quotePrice.toLocaleString('ar-SA')} ر.س` : 'لم يُحدد'}
+                  {o.quotePrice ? formatPrice(o.quotePrice) : 'لم يُحدد'}
                 </span>
                 <Link href={`/admin/orders/${o.id}`} style={{ padding: '0.375rem 0.875rem', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600, backgroundColor: 'rgba(21,118,212,0.1)', color: 'var(--blue-light)', textDecoration: 'none' }}>
                   إدارة →

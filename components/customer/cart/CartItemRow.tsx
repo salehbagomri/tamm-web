@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useCart, type CartItem } from '@/lib/store/cart-context'
+import { formatPrice } from '@/lib/utils/format'
 
 export default function CartItemRow({ item }: { item: CartItem }) {
   const { updateQuantity, removeFromCart, toggleInstallation } = useCart()
@@ -45,7 +46,7 @@ export default function CartItemRow({ item }: { item: CartItem }) {
           </p>
         ) : (
           <p style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 0.75rem' }}>
-            {totalPrice.toLocaleString('ar-SA')} ر.س
+            {formatPrice(totalPrice)}
           </p>
         )}
 
@@ -56,7 +57,7 @@ export default function CartItemRow({ item }: { item: CartItem }) {
               onChange={() => toggleInstallation(item.id)}
               style={{ accentColor: 'var(--blue-primary)', cursor: 'pointer' }} />
             <span style={{ fontSize: '0.8125rem', color: 'var(--text-second)' }}>
-              تضمين التركيب (+{item.installationPrice.toLocaleString('ar-SA')} ر.س)
+              تضمين التركيب (+{formatPrice(item.installationPrice)})
             </span>
           </label>
         )}

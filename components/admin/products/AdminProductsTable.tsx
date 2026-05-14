@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { Product, ProductCategory } from '@/lib/types/product'
 import { deleteProduct, toggleProductAvailability } from '@/lib/actions/admin/products'
+import { formatPrice } from '@/lib/utils/format'
 
 const CATEGORY_LABELS: Record<ProductCategory, string> = {
   ac: 'تكييف', solar_panel: 'لوح شمسي',
@@ -129,7 +130,7 @@ export default function AdminProductsTable({ products, totalCount }: { products:
                   {/* السعر */}
                   <td style={{ padding: '0.75rem 1rem', whiteSpace: 'nowrap', fontSize: '0.875rem', color: 'var(--text-primary)', fontWeight: 500 }}>
                     {p.isPriceOnRequest ? <span style={{ color: 'var(--warning)' }}>عند الطلب</span>
-                      : `${(p.price ?? 0).toLocaleString('ar-SA')} ر.س`}
+                      : formatPrice(p.price ?? 0)}
                   </td>
                   {/* Toggle المتاح */}
                   <td style={{ padding: '0.75rem 1rem' }}>
@@ -169,7 +170,7 @@ export default function AdminProductsTable({ products, totalCount }: { products:
                 <p style={{ margin: '0 0 0.25rem', fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.9rem' }}>{p.name}</p>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
                   <span style={{ padding: '0.15rem 0.5rem', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 600, backgroundColor: 'rgba(21,118,212,0.1)', color: 'var(--blue-light)' }}>{CATEGORY_LABELS[p.category]}</span>
-                  <span style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', fontWeight: 500 }}>{p.isPriceOnRequest ? 'عند الطلب' : `${(p.price ?? 0).toLocaleString('ar-SA')} ر.س`}</span>
+                  <span style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', fontWeight: 500 }}>{p.isPriceOnRequest ? 'عند الطلب' : formatPrice(p.price ?? 0)}</span>
                   <Toggle id={p.id} checked={p.isAvailable} onToggle={() => handleToggle(p.id, p.isAvailable)} />
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>

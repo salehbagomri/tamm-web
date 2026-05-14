@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { getServiceById } from '@/lib/data/services'
 import type { Metadata } from 'next'
+import { formatPrice } from '@/lib/utils/format'
 
 interface Props { params: Promise<{ id: string }> }
 
@@ -82,7 +83,7 @@ export default async function ServiceDetailPage({ params }: Props) {
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: '0.8125rem', color: 'var(--text-faint)', margin: '0 0 0.25rem' }}>السعر</p>
               <p style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                {service.isQuoteBased ? 'يُحدد حسب الموقع' : `${service.basePrice.toLocaleString('ar-SA')} ر.س`}
+                {service.isQuoteBased ? 'يُحدد حسب الموقع' : formatPrice(service.basePrice)}
               </p>
             </div>
           </div>
