@@ -5,7 +5,7 @@ type StatsCardColor = 'blue' | 'warning' | 'success' | 'sky' | 'light'
 interface StatsCardProps {
   title: string
   value: string | number
-  icon: string
+  icon: React.ReactNode
   color: StatsCardColor
   subtitle?: string
 }
@@ -53,7 +53,7 @@ export default function StatsCard({ title, value, icon, color, subtitle }: Stats
           borderRadius: '10px',
           backgroundColor: c.bg,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '1.2rem',
+          color: c.accent,
         }}>
           {icon}
         </div>

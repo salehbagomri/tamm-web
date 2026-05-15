@@ -48,6 +48,7 @@ Changes that ALWAYS affect both projects:
 - Prices: always use formatPrice() from lib/utils/format.ts — never raw toLocaleString
 - Numbers in prices must use Western/Latin numerals (en-SA) not Arabic-Indic numerals
 - RTL layout: dir="rtl" is set globally — never override it
+- Icons: use inline SVG with stroke="currentColor" fill="none" strokeWidth="1.5" — never emoji for UI icons. Keep emoji only inside button text labels where they are part of the content.
 
 ## 6. Before Reporting Any Task Complete
 
