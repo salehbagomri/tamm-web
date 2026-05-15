@@ -1,5 +1,7 @@
 // بطاقة إحصائية قابلة لإعادة الاستخدام
 
+import React from 'react'
+
 type StatsCardColor = 'blue' | 'warning' | 'success' | 'sky' | 'light'
 
 interface StatsCardProps {
