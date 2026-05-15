@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/lib/store/cart-context'
 import { createProductOrder, type CheckoutData } from '@/lib/actions/orders'
@@ -99,12 +99,23 @@ export default function CheckoutForm({ initialAddress, initialPhone, paymentMeth
 
   const selectedPaymentMethod = paymentMethods.find((m) => m.id === selectedPaymentMethodId) ?? null
 
-  const paymentLabel =
+  const PMICONS: Record<string, React.ReactNode> = {
+    cash: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 12h.01M18 12h.01"/></svg>,
+    bank: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 10v11M12 10v11M16 10v11"/></svg>,
+    wallet: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>,
+  }
+  const paymentText =
     selectedPaymentType === 'cash'
-      ? '💵 كاش عند الاستلام'
+      ? 'كاش عند الاستلام'
       : selectedPaymentType === 'bank'
-      ? selectedPaymentMethod ? `🏦 ${selectedPaymentMethod.name}` : '🏦 بنك أو صراف'
-      : selectedPaymentMethod ? `📱 ${selectedPaymentMethod.name}` : '📱 محفظة إلكترونية'
+      ? selectedPaymentMethod ? selectedPaymentMethod.name : 'بنك أو صراف'
+      : selectedPaymentMethod ? selectedPaymentMethod.name : 'محفظة إلكترونية'
+  const paymentLabel = (
+    <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+      {PMICONS[selectedPaymentType]}
+      <span>{paymentText}</span>
+    </span>
+  )
 
   // مؤشر الخطوات
   const StepIndicator = () => (
@@ -298,7 +309,10 @@ export default function CheckoutForm({ initialAddress, initialPhone, paymentMeth
                   </div>
                   {item.includeInstallation && item.installationPrice > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', paddingRight: '1.25rem' }}>
-                      <span style={{ color: 'var(--blue-light)' }}>🛠 خدمة التركيب</span>
+                      <span style={{ color: 'var(--blue-light)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                          خدمة التركيب
+                        </span>
                       <span style={{ color: 'var(--text-second)' }}>+ {formatPrice(item.installationPrice * item.quantity)}</span>
                     </div>
                   )}

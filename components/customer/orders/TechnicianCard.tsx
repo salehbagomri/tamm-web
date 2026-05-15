@@ -21,8 +21,12 @@ export default function TechnicianCard({ order }: { order: Order }) {
         <div style={{
           width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(21,118,212,0.1)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--blue-primary)',
-          fontSize: '1.25rem'
-        }}>👷</div>
+        }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
         <div>
           <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 0.125rem' }}>
             الفني المعين

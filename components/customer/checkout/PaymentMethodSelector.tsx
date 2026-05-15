@@ -1,7 +1,32 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import type { PaymentMethod } from '@/lib/types/payment'
+
+const ICON_CASH = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <rect x="2" y="6" width="20" height="12" rx="2"/>
+    <circle cx="12" cy="12" r="3"/>
+    <path d="M6 12h.01M18 12h.01"/>
+  </svg>
+)
+const ICON_BANK = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 10v11M12 10v11M16 10v11"/>
+  </svg>
+)
+const ICON_WALLET = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+    <line x1="12" y1="18" x2="12.01" y2="18"/>
+  </svg>
+)
+const ICON_CLIPBOARD = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+  </svg>
+)
 
 interface Props {
   paymentMethods: PaymentMethod[]
@@ -87,7 +112,7 @@ export default function PaymentMethodSelector({ paymentMethods, onChange }: Prop
     if (items.length === 0) return null
     const isSelected = selectedType === type
     const hasMethodSelected = isSelected && selectedMethodId !== null
-    const icon = type === 'bank' ? '🏦' : '📱'
+    const icon = type === 'bank' ? ICON_BANK : ICON_WALLET
     const label = type === 'bank' ? 'بنك أو صراف' : 'محفظة إلكترونية'
 
     return (
@@ -114,7 +139,7 @@ export default function PaymentMethodSelector({ paymentMethods, onChange }: Prop
             <div style={{ flex: 1 }}>
               {/* الصف العلوي: الاسم + زر تغيير */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '0.9375rem' }}>
+                <span style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '0.9375rem', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                   {icon} {selectedMethod.name}
                 </span>
                 <button
@@ -142,20 +167,21 @@ export default function PaymentMethodSelector({ paymentMethods, onChange }: Prop
                     title="نسخ رقم الحساب"
                     style={{
                       background: 'none', border: 'none', cursor: 'pointer',
-                      fontSize: '14px', lineHeight: 1, padding: '0 0.25rem',
+                      lineHeight: 1, padding: '0 0.25rem',
                       color: copiedId === selectedMethod.id ? 'var(--success)' : 'var(--text-faint)',
                       transition: 'color 0.15s',
                       fontFamily: 'inherit',
+                      display: 'flex', alignItems: 'center',
                     }}
                   >
-                    {copiedId === selectedMethod.id ? '✓' : '📋'}
+                    {copiedId === selectedMethod.id ? '✓' : ICON_CLIPBOARD}
                   </button>
                 </div>
               )}
             </div>
           ) : (
             <>
-              <span style={{ fontSize: '1.25rem' }}>{icon}</span>
+              <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-second)' }}>{icon}</span>
               <span style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '0.9375rem' }}>
                 {label}
               </span>
@@ -192,7 +218,7 @@ export default function PaymentMethodSelector({ paymentMethods, onChange }: Prop
           backgroundColor: selectedType === 'cash' ? 'rgba(21,118,212,0.08)' : 'var(--bg-surface2)',
           transition: 'background-color 0.2s',
         }}>
-          <span style={{ fontSize: '1.25rem' }}>💵</span>
+          <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-second)' }}>{ICON_CASH}</span>
           <span style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '0.9375rem' }}>
             كاش عند الاستلام
           </span>

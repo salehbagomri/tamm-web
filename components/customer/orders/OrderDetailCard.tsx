@@ -1,6 +1,6 @@
 import type { Order } from '@/lib/types/order'
 import type { PaymentMethod } from '@/lib/types/payment'
-import { ORDER_TYPE_LABELS } from './OrderCard'
+import { ORDER_TYPE_LABELS, ORDER_TYPE_ICONS } from './OrderCard'
 
 export default function OrderDetailCard({ order, paymentMethod }: { order: Order; paymentMethod?: PaymentMethod | null }) {
   const date = new Date(order.createdAt).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -12,8 +12,9 @@ export default function OrderDetailCard({ order, paymentMethod }: { order: Order
           <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 0.25rem' }}>
             الطلب {order.orderNumber}
           </h2>
-          <p style={{ color: 'var(--text-second)', fontSize: '0.9rem', margin: 0 }}>
-            {ORDER_TYPE_LABELS[order.orderType] ?? order.orderType} • {date}
+          <p style={{ color: 'var(--text-second)', fontSize: '0.9rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.375rem', flexWrap: 'wrap' }}>
+            {ORDER_TYPE_ICONS[order.orderType]}
+            <span>{ORDER_TYPE_LABELS[order.orderType] ?? order.orderType} • {date}</span>
           </p>
         </div>
       </div>
@@ -42,12 +43,16 @@ export default function OrderDetailCard({ order, paymentMethod }: { order: Order
       <div style={{ backgroundColor: 'var(--bg-surface2)', padding: '1rem', borderRadius: '12px' }}>
         <p style={{ fontSize: '0.8125rem', color: 'var(--text-faint)', margin: '0 0 0.25rem' }}>طريقة الدفع</p>
         {order.paymentType === 'cash' && (
-          <p style={{ fontSize: '0.9375rem', color: 'var(--text-primary)', margin: 0, fontWeight: 500 }}>💵 كاش عند الاستلام</p>
+          <p style={{ fontSize: '0.9375rem', color: 'var(--text-primary)', margin: 0, fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 12h.01M18 12h.01"/></svg>
+            كاش عند الاستلام
+          </p>
         )}
         {order.paymentType === 'bank' && (
           <div>
-            <p style={{ fontSize: '0.9375rem', color: 'var(--text-primary)', margin: 0, fontWeight: 500 }}>
-              🏦 {paymentMethod?.name ?? 'بنك أو صراف'}
+            <p style={{ fontSize: '0.9375rem', color: 'var(--text-primary)', margin: 0, fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 10v11M12 10v11M16 10v11"/></svg>
+              {paymentMethod?.name ?? 'بنك أو صراف'}
             </p>
             {paymentMethod?.accountNumber && (
               <p style={{ fontSize: '0.8125rem', color: 'var(--text-faint)', margin: '0.25rem 0 0' }}>
@@ -58,8 +63,9 @@ export default function OrderDetailCard({ order, paymentMethod }: { order: Order
         )}
         {order.paymentType === 'wallet' && (
           <div>
-            <p style={{ fontSize: '0.9375rem', color: 'var(--text-primary)', margin: 0, fontWeight: 500 }}>
-              📱 {paymentMethod?.name ?? 'محفظة إلكترونية'}
+            <p style={{ fontSize: '0.9375rem', color: 'var(--text-primary)', margin: 0, fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              {paymentMethod?.name ?? 'محفظة إلكترونية'}
             </p>
             {paymentMethod?.accountNumber && (
               <p style={{ fontSize: '0.8125rem', color: 'var(--text-faint)', margin: '0.25rem 0 0' }}>

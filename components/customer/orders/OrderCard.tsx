@@ -1,3 +1,4 @@
+import React from 'react'
 import Link from 'next/link'
 import type { Order } from '@/lib/types/order'
 import { formatPrice } from '@/lib/utils/format'
@@ -13,10 +14,21 @@ export const ORDER_STATUS_LABELS: Record<string, { label: string; color: string;
 }
 
 export const ORDER_TYPE_LABELS: Record<string, string> = {
-  product: '🛒 منتجات',
-  service: '🔧 خدمة',
-  product_and_service: '🛒 + 🔧 منتجات مع تركيب',
-  quote_request: '💬 طلب عرض سعر',
+  product: 'منتجات',
+  service: 'خدمة',
+  product_and_service: 'منتجات مع تركيب',
+  quote_request: 'طلب عرض سعر',
+}
+
+const CART_ICON = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+const WRENCH_ICON = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+const MSG_ICON = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+
+export const ORDER_TYPE_ICONS: Record<string, React.ReactNode> = {
+  product: CART_ICON,
+  service: WRENCH_ICON,
+  product_and_service: <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>{CART_ICON}{WRENCH_ICON}</span>,
+  quote_request: MSG_ICON,
 }
 
 export default function OrderCard({ order }: { order: Order }) {
@@ -47,8 +59,9 @@ export default function OrderCard({ order }: { order: Order }) {
               {statusDef.label}
             </span>
           </div>
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-second)', margin: 0 }}>
-            {ORDER_TYPE_LABELS[order.orderType] ?? order.orderType} • {date}
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-second)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.375rem', flexWrap: 'wrap' }}>
+            {ORDER_TYPE_ICONS[order.orderType]}
+            <span>{ORDER_TYPE_LABELS[order.orderType] ?? order.orderType} • {date}</span>
           </p>
         </div>
         <div style={{ textAlign: 'left' }}>

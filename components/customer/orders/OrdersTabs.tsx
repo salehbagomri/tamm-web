@@ -62,7 +62,12 @@ export default function OrdersTabs({ initialOrders }: { initialOrders: Order[] }
 
       {filteredOrders.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem 1.5rem', backgroundColor: 'var(--bg-surface)', borderRadius: '16px', border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📦</div>
+          <div style={{ marginBottom: '1rem', color: 'var(--text-faint)' }}>
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+              <path d="m3.3 7 8.7 5 8.7-5M12 22V12"/>
+            </svg>
+          </div>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 0.5rem' }}>لا توجد طلبات هنا</h2>
           <p style={{ color: 'var(--text-second)', marginBottom: '1.5rem' }}>لم تقم بأي طلبات تطابق هذا التصنيف بعد.</p>
           <Link href="/store" style={{

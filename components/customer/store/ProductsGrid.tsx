@@ -21,7 +21,12 @@ export default function ProductsGrid({ products, totalCount, currentPage, limit 
         backgroundColor: 'var(--bg-surface)',
         border: '1px solid var(--border)', borderRadius: '14px',
       }}>
-        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔍</div>
+        <div style={{ marginBottom: '1rem', color: 'var(--text-faint)' }}>
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </div>
         <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
           لا توجد منتجات
         </h3>

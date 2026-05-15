@@ -13,7 +13,14 @@ export default function OrderStatusTracker({ status }: { status: string }) {
   if (status === 'cancelled') {
     return (
       <div style={{ padding: '1.5rem', backgroundColor: 'rgba(224,82,82,0.1)', border: '1px solid rgba(224,82,82,0.3)', borderRadius: '16px', textAlign: 'center' }}>
-        <p style={{ color: 'var(--error)', fontWeight: 700, margin: 0, fontSize: '1.125rem' }}>❌ هذا الطلب ملغي</p>
+        <p style={{ color: 'var(--error)', fontWeight: 700, margin: 0, fontSize: '1.125rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+          هذا الطلب ملغي
+        </p>
       </div>
     )
   }

@@ -165,8 +165,18 @@ export default function CustomerNavbar({ user }: CustomerNavbarProps) {
                     overflow: 'hidden', zIndex: 200,
                   }}>
                     {[
-                      { href: '/profile', label: 'حسابي', icon: '👤' },
-                      { href: '/orders', label: 'طلباتي', icon: '📦' },
+                      { href: '/profile', label: 'حسابي', icon: (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                          <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                      )},
+                      { href: '/orders', label: 'طلباتي', icon: (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+                          <path d="m3.3 7 8.7 5 8.7-5M12 22V12"/>
+                        </svg>
+                      )},
                     ].map((item) => (
                       <Link key={item.href} href={item.href}
                         onClick={() => setIsDropdownOpen(false)}
@@ -176,7 +186,7 @@ export default function CustomerNavbar({ user }: CustomerNavbarProps) {
                           color: 'var(--text-primary)', fontSize: '0.9rem',
                           transition: 'background-color 0.15s',
                         }}>
-                        <span>{item.icon}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-second)' }}>{item.icon}</span>
                         <span>{item.label}</span>
                       </Link>
                     ))}
@@ -189,7 +199,13 @@ export default function CustomerNavbar({ user }: CustomerNavbarProps) {
                         color: 'var(--error)', fontSize: '0.9rem', cursor: 'pointer',
                         fontFamily: 'inherit',
                       }}>
-                        <span>🚪</span>
+                        <span style={{ display: 'flex', alignItems: 'center' }}>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                          </svg>
+                        </span>
                         <span>تسجيل الخروج</span>
                       </button>
                     </form>

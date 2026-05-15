@@ -26,7 +26,13 @@ export default function DangerZone() {
         borderRadius: '16px', padding: '1.75rem',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '1.25rem' }}>
-          <span style={{ fontSize: '1.25rem' }}>⚠️</span>
+          <span style={{ display: 'flex', alignItems: 'center', color: 'var(--error)' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </span>
           <h2 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--error)', margin: 0 }}>
             منطقة الخطر
           </h2>
@@ -113,7 +119,13 @@ export default function DangerZone() {
             }}
           >
             <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
+              <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center', color: 'var(--error)' }}>
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </div>
               <h3 style={{ fontSize: '1.375rem', fontWeight: 700, color: 'var(--error)', margin: '0 0 0.75rem' }}>
                 حذف الحساب نهائياً
               </h3>

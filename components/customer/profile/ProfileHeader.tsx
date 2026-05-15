@@ -60,8 +60,13 @@ export default function ProfileHeader({ profile }: { profile: UserProfile }) {
         padding: '0.3rem 1rem', borderRadius: '999px',
         backgroundColor: 'rgba(21,118,212,0.1)', border: '1px solid rgba(21,118,212,0.3)',
         color: 'var(--blue-light)', fontSize: '0.8125rem', fontWeight: 600,
+        display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
       }}>
-        👤 عميل
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        عميل
       </span>
 
       {/* تاريخ الانضمام */}
