@@ -39,7 +39,7 @@ interface CartItemInput {
   isPriceOnRequest: boolean
 }
 
-type ActionResult = { error: string } | { orderNumber: string }
+type ActionResult = { error: string } | { orderNumber: string; orderId?: string }
 
 // توليد رقم طلب فريد
 function generateOrderNumber(): string {
@@ -105,7 +105,7 @@ export async function createProductOrder(
   }
 
   revalidatePath('/orders')
-  return { orderNumber: order.order_number as string }
+  return { orderNumber: order.order_number as string, orderId: order.id as string }
 }
 
 // إنشاء طلب خدمة

@@ -6,7 +6,10 @@
       "Bash(git push *)",
       "Bash(Test-Path \"C:\\\\flutterprojects\\\\tamm_web\\\\lib\\\\actions\\\\profile.ts\")",
       "Bash(npm run *)",
-      "Bash(wait *)"
+      "Bash(wait *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\flutterprojects\\\\tamm_web\\\\lib\\\\data\" -Recurse -Filter \"*.ts\")",
+      "Bash(Select-Object FullName)",
+      "Bash(npx tsc *)"
     ]
   }
 }

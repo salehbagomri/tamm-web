@@ -8,6 +8,7 @@ import Input from '@/components/ui/Input'
 import { formatPrice } from '@/lib/utils/format'
 import PaymentMethodSelector from './PaymentMethodSelector'
 import TammDatePicker from './TammDatePicker'
+import OrderSuccessModal from './OrderSuccessModal'
 import type { PaymentMethod } from '@/lib/types/payment'
 
 const TIME_SLOTS = [
@@ -92,6 +93,11 @@ export default function CheckoutForm({ initialAddress, initialPhone, paymentMeth
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null)
   const [paymentError, setPaymentError] = useState('')
 
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [successOrderId, setSuccessOrderId] = useState('')
+  const [successOrderNumber, setSuccessOrderNumber] = useState('')
+  const [successPaymentType, setSuccessPaymentType] = useState<'cash' | 'bank' | 'wallet'>('cash')
+
   function updateStr(key: keyof CheckoutData, value: string) {
     setFormData((prev) => ({ ...prev, [key]: value }))
     setErrors((prev) => ({ ...prev, [key]: undefined }))
@@ -164,7 +170,11 @@ export default function CheckoutForm({ initialAddress, initialPhone, paymentMeth
       setLoading(false)
     } else {
       clearCart()
-      router.push(`/order-success?order=${result.orderNumber}`)
+      setSuccessOrderNumber(result.orderNumber)
+      setSuccessOrderId(result.orderId ?? '')
+      setSuccessPaymentType(selectedPaymentType)
+      setShowSuccessModal(true)
+      setLoading(false)
     }
   }
 
@@ -223,6 +233,16 @@ export default function CheckoutForm({ initialAddress, initialPhone, paymentMeth
   )
 
   return (
+    <>
+    {showSuccessModal && (
+      <OrderSuccessModal
+        orderId={successOrderId}
+        orderNumber={successOrderNumber}
+        paymentType={successPaymentType}
+        onContinueShopping={() => router.push('/store')}
+        onViewOrder={() => router.push(`/orders/${successOrderId}`)}
+      />
+    )}
     <div style={{ maxWidth: '640px', margin: '0 auto', padding: '2rem 1.5rem' }}>
       <h1 style={{ fontSize: '1.625rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
         إتمام الطلب
@@ -491,5 +511,6 @@ export default function CheckoutForm({ initialAddress, initialPhone, paymentMeth
         )}
       </div>
     </div>
+    </>
   )
 }
