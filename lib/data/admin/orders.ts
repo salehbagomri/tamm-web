@@ -29,6 +29,9 @@ export type AdminOrderRow = {
   technicianName: string | null
   paymentType: 'cash' | 'bank' | 'wallet'
   paymentMethodId: string | null
+  city: string | null
+  latitude: number | null
+  longitude: number | null
 }
 
 export type AdminOrderDetail = Order & {
@@ -68,6 +71,9 @@ function mapOrderRow(row: any): AdminOrderRow {
     technicianName: techProfile?.full_name ?? null,
     paymentType: row.payment_type ?? 'cash',
     paymentMethodId: row.payment_method_id ?? null,
+    city: row.city ?? null,
+    latitude: row.latitude ?? null,
+    longitude: row.longitude ?? null,
   }
 }
 

@@ -9,6 +9,9 @@ export interface CheckoutData {
   notes: string
   preferredDate: string
   preferredTimeSlot: string
+  city: string
+  latitude: number | null
+  longitude: number | null
 }
 
 export interface BookingData {
@@ -76,6 +79,9 @@ export async function createProductOrder(
       notes: checkoutData.notes || null,
       payment_type: paymentType,
       payment_method_id: paymentMethodId,
+      city: checkoutData.city || null,
+      latitude: checkoutData.latitude ?? null,
+      longitude: checkoutData.longitude ?? null,
     })
     .select('id, order_number')
     .single()

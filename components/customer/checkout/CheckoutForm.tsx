@@ -7,6 +7,7 @@ import { createProductOrder, type CheckoutData } from '@/lib/actions/orders'
 import Input from '@/components/ui/Input'
 import { formatPrice } from '@/lib/utils/format'
 import PaymentMethodSelector from './PaymentMethodSelector'
+import TammDatePicker from './TammDatePicker'
 import type { PaymentMethod } from '@/lib/types/payment'
 
 const TIME_SLOTS = [
@@ -15,7 +16,7 @@ const TIME_SLOTS = [
   { key: '4PM-8PM', label: 'مساءً (4 م - 8 م)' },
 ]
 
-const CITIES = [{ key: 'mukalla', label: 'المكلا' }]
+const CITIES = [{ key: 'المكلا', label: 'المكلا' }]
 
 const STEP_LABELS = ['الموقع والعنوان', 'موعد التسليم', 'طريقة الدفع', 'التأكيد']
 
@@ -49,6 +50,21 @@ interface CheckoutFormProps {
 
 type FormErrors = Partial<Record<keyof CheckoutData | 'city', string>>
 
+// Convert a Date to YYYY-MM-DD string for DB storage
+function toDateString(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+// Convert YYYY-MM-DD back to a Date for the picker initial value
+function fromDateString(s: string): Date | null {
+  if (!s) return null
+  const [y, m, d] = s.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
 export default function CheckoutForm({ initialAddress, initialPhone, paymentMethods }: CheckoutFormProps) {
   const router = useRouter()
   const { items, totalAmount, clearCart } = useCart()
@@ -56,28 +72,27 @@ export default function CheckoutForm({ initialAddress, initialPhone, paymentMeth
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Location state (step 1) — stored in state only; city/lat/lng columns don't exist in orders table yet
-  const [selectedCity, setSelectedCity] = useState('mukalla')
-  const [gpsStatus, setGpsStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [latitude, setLatitude] = useState<number | null>(null)
-  const [longitude, setLongitude] = useState<number | null>(null)
-
+  // city, latitude, longitude now live inside formData so they're automatically
+  // passed to createProductOrder and saved to the orders table
   const [formData, setFormData] = useState<CheckoutData>({
     address: initialAddress ?? '',
     phone: initialPhone ?? '',
     notes: '',
     preferredDate: '',
     preferredTimeSlot: '',
+    city: 'المكلا',
+    latitude: null,
+    longitude: null,
   })
   const [errors, setErrors] = useState<FormErrors>({})
+
+  const [gpsStatus, setGpsStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
 
   const [selectedPaymentType, setSelectedPaymentType] = useState<'cash' | 'bank' | 'wallet'>('cash')
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null)
   const [paymentError, setPaymentError] = useState('')
 
-  const today = new Date().toISOString().split('T')[0]
-
-  function update(key: keyof CheckoutData, value: string) {
+  function updateStr(key: keyof CheckoutData, value: string) {
     setFormData((prev) => ({ ...prev, [key]: value }))
     setErrors((prev) => ({ ...prev, [key]: undefined }))
   }
@@ -88,13 +103,21 @@ export default function CheckoutForm({ initialAddress, initialPhone, paymentMeth
     setPaymentError('')
   }
 
+  function handleDateChange(date: Date) {
+    setFormData((prev) => ({ ...prev, preferredDate: toDateString(date) }))
+    setErrors((prev) => ({ ...prev, preferredDate: undefined }))
+  }
+
   function requestGps() {
     if (!navigator.geolocation) { setGpsStatus('error'); return }
     setGpsStatus('loading')
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setLatitude(pos.coords.latitude)
-        setLongitude(pos.coords.longitude)
+        setFormData((prev) => ({
+          ...prev,
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        }))
         setGpsStatus('success')
       },
       () => setGpsStatus('error'),
@@ -103,7 +126,7 @@ export default function CheckoutForm({ initialAddress, initialPhone, paymentMeth
 
   function validateStep1(): boolean {
     const e: FormErrors = {}
-    if (!selectedCity) e.city = 'يرجى اختيار المدينة'
+    if (!formData.city) e.city = 'يرجى اختيار المدينة'
     if (!formData.address.trim() || formData.address.trim().length < 10)
       e.address = 'يرجى إدخال عنوان تفصيلي (10 أحرف على الأقل)'
     setErrors(e)
@@ -135,7 +158,6 @@ export default function CheckoutForm({ initialAddress, initialPhone, paymentMeth
   async function handleSubmit() {
     setLoading(true)
     setError('')
-    // city / latitude / longitude captured in local state — not sent to DB until columns are added
     const result = await createProductOrder(items, formData, selectedPaymentType, selectedPaymentMethodId)
     if ('error' in result) {
       setError(result.error)
@@ -224,13 +246,16 @@ export default function CheckoutForm({ initialAddress, initialPhone, paymentMeth
                   <label key={city.key} style={{
                     display: 'flex', alignItems: 'center', gap: '0.75rem',
                     padding: '0.875rem 1rem', borderRadius: '10px', cursor: 'pointer',
-                    border: `1px solid ${selectedCity === city.key ? 'var(--blue-primary)' : 'var(--border)'}`,
-                    backgroundColor: selectedCity === city.key ? 'rgba(21,118,212,0.08)' : 'var(--bg-surface2)',
+                    border: `1px solid ${formData.city === city.key ? 'var(--blue-primary)' : 'var(--border)'}`,
+                    backgroundColor: formData.city === city.key ? 'rgba(21,118,212,0.08)' : 'var(--bg-surface2)',
                     transition: 'all 0.15s',
                   }}>
                     <input type="radio" name="city" value={city.key}
-                      checked={selectedCity === city.key}
-                      onChange={() => { setSelectedCity(city.key); setErrors((p) => ({ ...p, city: undefined })) }}
+                      checked={formData.city === city.key}
+                      onChange={() => {
+                        setFormData((prev) => ({ ...prev, city: city.key }))
+                        setErrors((prev) => ({ ...prev, city: undefined }))
+                      }}
                       style={{ accentColor: 'var(--blue-primary)', flexShrink: 0 }} />
                     <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{city.label}</span>
                     <span style={{ fontSize: '0.75rem', color: 'var(--success)', fontWeight: 500, marginRight: 'auto' }}>
@@ -245,7 +270,7 @@ export default function CheckoutForm({ initialAddress, initialPhone, paymentMeth
             {/* تفاصيل العنوان */}
             <Input label="تفاصيل العنوان" id="checkout-address" type="text" dir="rtl"
               placeholder="الحي، الشارع، رقم المبنى..."
-              value={formData.address} onChange={(e) => update('address', e.target.value)}
+              value={formData.address} onChange={(e) => updateStr('address', e.target.value)}
               error={errors.address} />
 
             {/* الموقع الجغرافي */}
@@ -273,9 +298,9 @@ export default function CheckoutForm({ initialAddress, initialPhone, paymentMeth
                 {gpsStatus === 'success' && 'تم تحديد الموقع بنجاح'}
                 {gpsStatus === 'error' && 'تعذّر الوصول للموقع — حاول مرة أخرى'}
               </button>
-              {gpsStatus === 'success' && latitude !== null && longitude !== null && (
+              {gpsStatus === 'success' && formData.latitude !== null && formData.longitude !== null && (
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-faint)', margin: 0 }}>
-                  {latitude.toFixed(6)} ، {longitude.toFixed(6)}
+                  {formData.latitude.toFixed(6)} ، {formData.longitude.toFixed(6)}
                 </p>
               )}
             </div>
@@ -293,23 +318,22 @@ export default function CheckoutForm({ initialAddress, initialPhone, paymentMeth
 
             <Input label="رقم الجوال" id="checkout-phone" type="tel" dir="ltr"
               placeholder="7XXXXXXXX" value={formData.phone}
-              onChange={(e) => update('phone', e.target.value)}
+              onChange={(e) => updateStr('phone', e.target.value)}
               maxLength={9} error={errors.phone} style={{ textAlign: 'right' }} />
 
+            {/* التقويم المخصص */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
               <label style={{ color: 'var(--text-second)', fontSize: '0.875rem', fontWeight: 500 }}>التاريخ المفضل</label>
-              <input type="date" min={today} value={formData.preferredDate}
-                onChange={(e) => update('preferredDate', e.target.value)}
-                style={{
-                  width: '100%', padding: '0.75rem 1rem',
-                  backgroundColor: 'var(--bg-surface2)',
-                  border: `1px solid ${errors.preferredDate ? 'var(--error)' : 'var(--border)'}`,
-                  borderRadius: '10px', color: 'var(--text-primary)',
-                  fontFamily: 'inherit', fontSize: '0.9375rem', outline: 'none', direction: 'ltr',
-                }} />
-              {errors.preferredDate && <p style={{ color: 'var(--error)', fontSize: '0.8125rem', margin: 0 }}>{errors.preferredDate}</p>}
+              <TammDatePicker
+                value={fromDateString(formData.preferredDate)}
+                onChange={handleDateChange}
+              />
+              {errors.preferredDate && (
+                <p style={{ color: 'var(--error)', fontSize: '0.8125rem', margin: 0 }}>{errors.preferredDate}</p>
+              )}
             </div>
 
+            {/* الفترة الزمنية */}
             <div>
               <p style={{ color: 'var(--text-second)', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.75rem' }}>
                 وقت التسليم المفضل
@@ -325,7 +349,7 @@ export default function CheckoutForm({ initialAddress, initialPhone, paymentMeth
                   }}>
                     <input type="radio" name="timeSlot" value={slot.key}
                       checked={formData.preferredTimeSlot === slot.key}
-                      onChange={() => update('preferredTimeSlot', slot.key)}
+                      onChange={() => updateStr('preferredTimeSlot', slot.key)}
                       style={{ accentColor: 'var(--blue-primary)' }} />
                     <span style={{ color: 'var(--text-primary)', fontSize: '0.9375rem' }}>{slot.label}</span>
                   </label>
@@ -378,7 +402,7 @@ export default function CheckoutForm({ initialAddress, initialPhone, paymentMeth
               <textarea
                 placeholder="أي تعليمات أو ملاحظات للفني..."
                 value={formData.notes}
-                onChange={(e) => update('notes', e.target.value)}
+                onChange={(e) => updateStr('notes', e.target.value)}
                 rows={3}
                 style={{
                   width: '100%', padding: '0.75rem 1rem',
