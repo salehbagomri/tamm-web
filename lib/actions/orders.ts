@@ -98,6 +98,7 @@ export async function createProductOrder(
     return { error: `حدث خطأ أثناء حفظ المنتجات: ${itemsErr.message}` }
   }
 
+  revalidatePath('/orders')
   return { orderNumber: order.order_number as string }
 }
 
