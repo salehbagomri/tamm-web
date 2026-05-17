@@ -223,3 +223,23 @@ export async function respondToQuote(
 
   return {}
 }
+
+export async function updateReceiptUrl(
+  orderId: string,
+  receiptUrl: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: 'يجب تسجيل الدخول أولاً' }
+
+  const { error } = await supabase
+    .from('orders')
+    .update({ receipt_url: receiptUrl })
+    .eq('id', orderId)
+    .eq('customer_id', user.id)
+
+  if (error) return { success: false, error: 'حدث خطأ أثناء حفظ الصورة، يرجى المحاولة مرة أخرى' }
+
+  revalidatePath(`/orders/${orderId}`)
+  return { success: true }
+}

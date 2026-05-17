@@ -32,6 +32,7 @@ export type AdminOrderRow = {
   city: string | null
   latitude: number | null
   longitude: number | null
+  receiptUrl: string | null
 }
 
 export type AdminOrderDetail = Order & {
@@ -74,6 +75,7 @@ function mapOrderRow(row: any): AdminOrderRow {
     city: row.city ?? null,
     latitude: row.latitude ?? null,
     longitude: row.longitude ?? null,
+    receiptUrl: row.receipt_url ?? null,
   }
 }
 
@@ -186,6 +188,9 @@ export async function getAdminOrderById(orderId: string): Promise<AdminOrderDeta
     quoteAttachmentUrl: data.quote_attachment_url ?? null,
     paymentType: data.payment_type ?? 'cash',
     paymentMethodId: data.payment_method_id ?? null,
+    city: data.city ?? null,
+    latitude: data.latitude ?? null,
+    longitude: data.longitude ?? null,
     scheduledPeriod: data.scheduled_period ?? null,
     scheduledHour: data.scheduled_hour ?? null,
     technicianNotes: assignment?.technician_notes ?? null,
@@ -216,6 +221,7 @@ export async function getAdminOrderById(orderId: string): Promise<AdminOrderDeta
       product: item.products ?? undefined,
       service: item.service_types ?? undefined,
     })),
+    receiptUrl: data.receipt_url ?? null,
   }
 }
 

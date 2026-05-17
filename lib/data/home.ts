@@ -33,6 +33,8 @@ type RawOrder = {
   quote_responded_at: string | null; rejection_reason: string | null
   quote_attachment_url: string | null
   payment_type: string | null; payment_method_id: string | null
+  city: string | null; latitude: number | null; longitude: number | null
+  receipt_url: string | null
 }
 
 export type Promotion = {
@@ -81,6 +83,10 @@ function mapOrder(r: RawOrder): Order {
     rejectionReason: r.rejection_reason, quoteAttachmentUrl: r.quote_attachment_url,
     paymentType: (r.payment_type as 'cash' | 'bank' | 'wallet') ?? 'cash',
     paymentMethodId: r.payment_method_id ?? null,
+    city: r.city ?? null,
+    latitude: r.latitude ?? null,
+    longitude: r.longitude ?? null,
+    receiptUrl: r.receipt_url ?? null,
   }
 }
 

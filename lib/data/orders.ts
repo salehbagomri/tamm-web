@@ -46,6 +46,7 @@ function mapOrder(raw: any): Order {
     city: raw.city ?? null,
     latitude: raw.latitude ?? null,
     longitude: raw.longitude ?? null,
+    receiptUrl: raw.receipt_url ?? null,
   }
 }
 

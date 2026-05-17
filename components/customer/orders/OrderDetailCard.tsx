@@ -1,6 +1,7 @@
 import type { Order } from '@/lib/types/order'
 import type { PaymentMethod } from '@/lib/types/payment'
 import { ORDER_TYPE_LABELS, ORDER_TYPE_ICONS } from './OrderCard'
+import ReceiptUpload from './ReceiptUpload'
 
 export default function OrderDetailCard({ order, paymentMethod }: { order: Order; paymentMethod?: PaymentMethod | null }) {
   const date = new Date(order.createdAt).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -75,6 +76,18 @@ export default function OrderDetailCard({ order, paymentMethod }: { order: Order
           </div>
         )}
       </div>
+
+      {/* إرفاق سند التحويل */}
+      {(order.paymentType === 'bank' || order.paymentType === 'wallet') && (
+        <div>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--text-faint)', margin: '0 0 0.625rem' }}>سند التحويل</p>
+          <ReceiptUpload
+            orderId={order.id}
+            currentReceiptUrl={order.receiptUrl}
+            paymentType={order.paymentType}
+          />
+        </div>
+      )}
 
       {/* الملاحظات */}
       {order.notes && (
