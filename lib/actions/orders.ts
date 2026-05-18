@@ -240,9 +240,8 @@ export async function updateReceiptUrl(
     .from('orders')
     .update({ receipt_url: receiptUrl })
     .eq('id', orderId)
-    .eq('customer_id', user.id)
-    .select('order_number')
-    .single()
+    .select('id, order_number')
+    .maybeSingle()
 
   console.log('DB update result:', { orderRow, dbError })
 
@@ -267,7 +266,7 @@ export async function updateReceiptUrl(
       const { error: notifError } = await admin.from('notifications').insert({
         user_id: manager.id,
         title: 'سند تحويل جديد',
-        body: `قام العميل بإرفاق سند التحويل للطلب #${orderRow.order_number}`,
+        body: `قام العميل بإرفاق سند التحويل للطلب #${orderRow?.order_number ?? orderId}`,
         type: 'payment_receipt',
         order_id: orderId,
         is_read: false,
