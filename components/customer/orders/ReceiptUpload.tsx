@@ -53,6 +53,7 @@ export default function ReceiptUpload({ orderId, orderNumber, currentReceiptUrl 
       .upload(path, file, { upsert: true })
 
     if (uploadErr) {
+      console.error('Receipt upload error:', uploadErr)
       setError('فشل رفع الملف، يرجى المحاولة مرة أخرى')
       setUploadState(receiptUrl ? 'done' : 'idle')
       return
