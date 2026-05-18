@@ -41,24 +41,22 @@ export async function assignTechnician(
   orderId: string,
   technicianId: string
 ): Promise<{ error?: string }> {
-  console.log('assignTechnician called:', { orderId, technicianId })
   const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'يجب تسجيل الدخول أولاً' }
 
   // حذف التعيين القديم إن وجد
   await supabase.from('assignments').delete().eq('order_id', orderId)
 
   // إنشاء تعيين جديد
-  const { data, error: assignErr } = await supabase.from('assignments').insert({
+  const { error: assignErr } = await supabase.from('assignments').insert({
     order_id: orderId,
     technician_id: technicianId,
-  }).select()
+    assigned_by: user.id,
+    status: 'pending',
+  })
 
-  console.log('Assignment result:', JSON.stringify({ data, error: assignErr }))
-
-  if (assignErr) {
-    console.error('[assignTechnician - assignment]', assignErr)
-    return { error: 'فشل تعيين الفني' }
-  }
+  if (assignErr) return { error: 'فشل تعيين الفني' }
 
   // تحديث الحالة إلى assigned
   const { error: statusErr } = await supabase
@@ -66,10 +64,7 @@ export async function assignTechnician(
     .update({ status: 'assigned', updated_at: new Date().toISOString() })
     .eq('id', orderId)
 
-  if (statusErr) {
-    console.error('[assignTechnician - status]', statusErr)
-    return { error: 'تم تعيين الفني لكن فشل تحديث الحالة' }
-  }
+  if (statusErr) return { error: 'تم تعيين الفني لكن فشل تحديث الحالة' }
 
   revalidateAll(orderId)
   return {}
