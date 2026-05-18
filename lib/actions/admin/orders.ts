@@ -50,6 +50,12 @@ export async function assignTechnician(
   await supabase.from('assignments').delete().eq('order_id', orderId)
 
   // إنشاء تعيين جديد
+  console.log('INSERT payload:', JSON.stringify({
+    order_id: orderId,
+    technician_id: technicianId,
+    assigned_by: user?.id,
+    status: 'pending',
+  }))
   const { error: assignErr } = await supabase.from('assignments').insert({
     order_id: orderId,
     technician_id: technicianId,
