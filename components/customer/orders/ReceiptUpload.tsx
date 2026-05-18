@@ -24,34 +24,44 @@ export default function ReceiptUpload({ orderId, orderNumber, currentReceiptUrl 
     setUploadState('uploading')
     setError('')
 
-    const supabase = createClient()
-    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
-    const path = `receipts/${orderId}/${Date.now()}.${ext}`
+    try {
+      const supabase = createClient()
+      const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
+      const path = `${orderId}/${Date.now()}.${ext}`
 
-    const { error: uploadErr } = await supabase.storage
-      .from('receipts')
-      .upload(path, file, { upsert: true })
+      console.log('[ReceiptUpload] uploading to bucket receipts, path:', path)
+      const { error: uploadErr } = await supabase.storage
+        .from('receipts')
+        .upload(path, file, { upsert: true })
 
-    if (uploadErr) {
-      console.error('Receipt upload error:', uploadErr)
-      setError('فشل رفع الملف، يرجى المحاولة مرة أخرى')
+      if (uploadErr) {
+        console.error('[ReceiptUpload] storage upload error:', uploadErr)
+        setError(`فشل رفع الملف: ${uploadErr.message}`)
+        setUploadState(receiptUrl ? 'done' : 'idle')
+        return
+      }
+
+      const { data: urlData } = supabase.storage.from('receipts').getPublicUrl(path)
+      const publicUrl = urlData.publicUrl
+      console.log('[ReceiptUpload] storage upload success, publicUrl:', publicUrl)
+
+      console.log('[ReceiptUpload] calling updateReceiptUrl:', { orderId, publicUrl })
+      const result = await updateReceiptUrl(orderId, publicUrl)
+      console.log('[ReceiptUpload] updateReceiptUrl result:', result)
+
+      if (!result.success) {
+        setError(result.error ?? 'حدث خطأ أثناء الحفظ')
+        setUploadState(receiptUrl ? 'done' : 'idle')
+        return
+      }
+
+      setReceiptUrl(publicUrl)
+      setUploadState('done')
+    } catch (err) {
+      console.error('[ReceiptUpload] unexpected error:', err)
+      setError('حدث خطأ غير متوقع، يرجى المحاولة مرة أخرى')
       setUploadState(receiptUrl ? 'done' : 'idle')
-      return
     }
-
-    const { data: { publicUrl } } = supabase.storage.from('receipts').getPublicUrl(path)
-
-    console.log('Calling updateReceiptUrl with:', { orderId, publicUrl })
-    const result = await updateReceiptUrl(orderId, publicUrl)
-    console.log('updateReceiptUrl result:', result)
-    if (!result.success) {
-      setError(result.error ?? 'حدث خطأ أثناء الحفظ')
-      setUploadState(receiptUrl ? 'done' : 'idle')
-      return
-    }
-
-    setReceiptUrl(publicUrl)
-    setUploadState('done')
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
