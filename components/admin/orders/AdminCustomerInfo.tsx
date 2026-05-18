@@ -97,6 +97,47 @@ export default function AdminCustomerInfo({ order, paymentMethod }: { order: Adm
         </div>
       </div>
 
+      {/* سند التحويل */}
+      {(order.paymentType === 'bank' || order.paymentType === 'wallet') && (
+        <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1.5rem' }}>
+          <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+            🧾 سند التحويل
+          </h3>
+          {order.receiptUrl ? (
+            order.receiptUrl.toLowerCase().includes('.pdf') ? (
+              <a
+                href={order.receiptUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                  padding: '0.625rem 1rem', borderRadius: '10px',
+                  backgroundColor: 'var(--bg-surface2)', border: '1px solid var(--border)',
+                  color: 'var(--blue-light)', fontSize: '0.9rem', fontWeight: 600,
+                  textDecoration: 'none',
+                }}
+              >
+                📄 عرض السند
+              </a>
+            ) : (
+              <a href={order.receiptUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
+                <img
+                  src={order.receiptUrl}
+                  alt="سند التحويل"
+                  style={{
+                    width: '100%', maxHeight: '240px', objectFit: 'cover',
+                    borderRadius: '10px', border: '1px solid var(--border)',
+                    display: 'block', cursor: 'zoom-in',
+                  }}
+                />
+              </a>
+            )
+          ) : (
+            <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-faint)' }}>لم يُرفع السند بعد</p>
+          )}
+        </div>
+      )}
+
       {/* ملاحظات العميل */}
       {order.notes && (
         <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1.5rem' }}>
