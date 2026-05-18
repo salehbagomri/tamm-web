@@ -193,7 +193,7 @@ export async function getAdminOrderById(orderId: string): Promise<AdminOrderDeta
     longitude: data.longitude ?? null,
     scheduledPeriod: data.scheduled_period ?? null,
     scheduledHour: data.scheduled_hour ?? null,
-    technicianNotes: assignment?.technician_notes ?? null,
+    technicianNotes: data.technician_notes ?? null,
     technicianName: techProfile?.full_name ?? null,
     technicianId: assignment?.technician_id ?? null,
     technicianPhone: techProfile?.phone ?? null,
