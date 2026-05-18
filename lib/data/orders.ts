@@ -29,6 +29,7 @@ function mapOrder(raw: any): Order {
       includeInstallation: item.include_installation
     })) || [],
     customerProfile: raw.customerProfile || null,
+    technicianId: raw.technician_id ?? null,
     technicianName: raw.technician_name,
     technicianNotes: raw.technician_notes,
     scheduledPeriod: raw.scheduled_period,

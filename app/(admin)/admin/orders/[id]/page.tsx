@@ -7,6 +7,7 @@ import AdminCustomerInfo from '@/components/admin/orders/AdminCustomerInfo'
 import AdminOrderActions from '@/components/admin/orders/AdminOrderActions'
 import QuoteManagement from '@/components/admin/orders/QuoteManagement'
 import AdminOrderDetailRealtimeWrapper from '@/components/admin/orders/AdminOrderDetailRealtimeWrapper'
+import { getReviewByOrderId } from '@/lib/data/reviews'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -34,6 +35,8 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
 
   if (!order) notFound()
 
+  const review = await getReviewByOrderId(supabase, id)
+
   const paymentMethod = order.paymentMethodId
     ? (paymentMethods.find((m) => m.id === order.paymentMethodId) ?? null)
     : null
@@ -56,7 +59,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
         >
           {/* العمود الرئيسي */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <AdminCustomerInfo order={order} paymentMethod={paymentMethod} />
+            <AdminCustomerInfo order={order} paymentMethod={paymentMethod} review={review} />
           </div>
 
           {/* العمود الجانبي */}

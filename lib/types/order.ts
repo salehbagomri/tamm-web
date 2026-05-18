@@ -48,6 +48,7 @@ export type Order = {
   createdAt: string
   items: OrderItem[]
   customerProfile: UserProfile | null
+  technicianId: string | null
   technicianName: string | null
   technicianNotes: string | null
   scheduledPeriod: string | null

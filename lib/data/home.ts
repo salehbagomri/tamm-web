@@ -25,7 +25,7 @@ type RawOrder = {
   order_type: string; status: string; total_amount: number
   address: string; created_at: string; include_installation: boolean
   preferred_date: string | null; preferred_time_slot: string | null
-  notes: string | null; technician_name: string | null
+  notes: string | null; technician_id: string | null; technician_name: string | null
   technician_notes: string | null; scheduled_period: string | null
   scheduled_hour: string | null; quote_price: number | null
   quote_details: string | null; quote_duration: string | null
@@ -75,6 +75,7 @@ function mapOrder(r: RawOrder): Order {
     includeInstallation: r.include_installation,
     preferredDate: r.preferred_date, preferredTimeSlot: r.preferred_time_slot,
     notes: r.notes, items: [], customerProfile: null,
+    technicianId: r.technician_id ?? null,
     technicianName: r.technician_name, technicianNotes: r.technician_notes,
     scheduledPeriod: r.scheduled_period, scheduledHour: r.scheduled_hour,
     quotePrice: r.quote_price, quoteDetails: r.quote_details,

@@ -11,6 +11,8 @@ import TechnicianCard from '@/components/customer/orders/TechnicianCard'
 import QuoteSection from '@/components/customer/orders/QuoteSection'
 import OrderActionBar from '@/components/customer/orders/OrderActionBar'
 import OrderDetailRealtimeWrapper from '@/components/customer/orders/OrderDetailRealtimeWrapper'
+import ReviewCard from '@/components/customer/orders/ReviewCard'
+import { getReviewByOrderId } from '@/lib/data/reviews'
 import type { Metadata } from 'next'
 
 interface Props { params: Promise<{ id: string }> }
@@ -32,6 +34,8 @@ export default async function OrderDetailPage({ params }: Props) {
     getPaymentMethods(),
   ])
   if (!order) notFound()
+
+  const review = await getReviewByOrderId(supabase, id)
 
   const paymentMethod = order.paymentMethodId
     ? (paymentMethods.find((m) => m.id === order.paymentMethodId) ?? null)
@@ -73,6 +77,14 @@ export default async function OrderDetailPage({ params }: Props) {
 
           {/* 7. Technician info */}
           <TechnicianCard order={order} />
+
+          {/* 8. Review */}
+          <ReviewCard
+            orderId={id}
+            technicianId={order.technicianId ?? null}
+            existingReview={review}
+            orderStatus={order.status}
+          />
 
         </div>
       </div>

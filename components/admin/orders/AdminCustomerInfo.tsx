@@ -1,5 +1,6 @@
 import type { AdminOrderDetail } from '@/lib/data/admin/orders'
 import type { PaymentMethod } from '@/lib/types/payment'
+import type { Review } from '@/lib/data/reviews'
 import { formatPrice } from '@/lib/utils/format'
 
 const TIME_SLOT_LABELS: Record<string, string> = {
@@ -8,7 +9,7 @@ const TIME_SLOT_LABELS: Record<string, string> = {
   '4PM-8PM':  'مساءً (4 م - 8 م)',
 }
 
-export default function AdminCustomerInfo({ order, paymentMethod }: { order: AdminOrderDetail; paymentMethod?: PaymentMethod | null }) {
+export default function AdminCustomerInfo({ order, paymentMethod, review }: { order: AdminOrderDetail; paymentMethod?: PaymentMethod | null; review?: Review | null }) {
   const customer = order.customerProfile
 
   return (
@@ -145,6 +146,42 @@ export default function AdminCustomerInfo({ order, paymentMethod }: { order: Adm
             📝 ملاحظات العميل
           </h3>
           <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-second)', lineHeight: 1.6 }}>{order.notes}</p>
+        </div>
+      )}
+
+      {/* تقييم العميل */}
+      {order.status === 'completed' && (
+        <div style={{ backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '16px', padding: '1.5rem' }}>
+          <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+            تقييم العميل
+          </h3>
+          {review ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+              {/* Stars */}
+              <div style={{ display: 'flex', gap: '0.2rem' }}>
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <svg key={n} width="20" height="20" viewBox="0 0 24 24"
+                    fill={n <= review.rating ? '#f59e0b' : 'none'}
+                    stroke={n <= review.rating ? '#f59e0b' : 'var(--border)'}
+                    strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                ))}
+              </div>
+              {review.comment && (
+                <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-second)', lineHeight: 1.6 }}>
+                  {review.comment}
+                </p>
+              )}
+              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-faint)' }}>
+                {new Date(review.createdAt).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}
+              </p>
+            </div>
+          ) : (
+            <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-faint)' }}>
+              لم يقم العميل بالتقييم بعد
+            </p>
+          )}
         </div>
       )}
 
