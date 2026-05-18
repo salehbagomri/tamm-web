@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 export interface CheckoutData {
@@ -232,13 +232,39 @@ export async function updateReceiptUrl(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'يجب تسجيل الدخول أولاً' }
 
-  const { error } = await supabase
+  const { data: orderRow, error } = await supabase
     .from('orders')
     .update({ receipt_url: receiptUrl })
     .eq('id', orderId)
     .eq('customer_id', user.id)
+    .select('order_number')
+    .single()
 
   if (error) return { success: false, error: 'حدث خطأ أثناء حفظ الصورة، يرجى المحاولة مرة أخرى' }
+
+  // Notify manager using service-role client (bypasses RLS on profiles)
+  try {
+    const admin = createAdminClient()
+    const { data: manager } = await admin
+      .from('profiles')
+      .select('id')
+      .eq('role', 'manager')
+      .limit(1)
+      .maybeSingle()
+
+    if (manager?.id) {
+      await admin.from('notifications').insert({
+        user_id: manager.id,
+        title: 'سند تحويل جديد',
+        body: `قام العميل بإرفاق سند التحويل للطلب #${orderRow.order_number}`,
+        type: 'payment_receipt',
+        order_id: orderId,
+        is_read: false,
+      })
+    }
+  } catch {
+    // Notification failure must not block the receipt save
+  }
 
   revalidatePath(`/orders/${orderId}`)
   return { success: true }

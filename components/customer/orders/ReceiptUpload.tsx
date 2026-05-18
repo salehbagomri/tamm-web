@@ -20,26 +20,6 @@ export default function ReceiptUpload({ orderId, orderNumber, currentReceiptUrl 
   const [hovering, setHovering] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  async function notifyManager(supabase: ReturnType<typeof createClient>) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('role', 'manager')
-      .limit(1)
-      .single()
-
-    if (data?.id) {
-      await supabase.from('notifications').insert({
-        user_id: data.id,
-        title: 'سند تحويل جديد',
-        body: `قام العميل بإرفاق سند التحويل للطلب #${orderNumber}`,
-        type: 'payment_receipt',
-        order_id: orderId,
-        is_read: false,
-      })
-    }
-  }
-
   async function handleFile(file: File) {
     setUploadState('uploading')
     setError('')
@@ -67,9 +47,6 @@ export default function ReceiptUpload({ orderId, orderNumber, currentReceiptUrl 
       setUploadState(receiptUrl ? 'done' : 'idle')
       return
     }
-
-    // Notify manager (fire-and-forget — don't block on errors)
-    notifyManager(supabase).catch(() => {})
 
     setReceiptUrl(publicUrl)
     setUploadState('done')
