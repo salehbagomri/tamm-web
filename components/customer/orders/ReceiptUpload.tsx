@@ -41,7 +41,9 @@ export default function ReceiptUpload({ orderId, orderNumber, currentReceiptUrl 
 
     const { data: { publicUrl } } = supabase.storage.from('receipts').getPublicUrl(path)
 
+    console.log('Calling updateReceiptUrl with:', { orderId, publicUrl })
     const result = await updateReceiptUrl(orderId, publicUrl)
+    console.log('updateReceiptUrl result:', result)
     if (!result.success) {
       setError(result.error ?? 'حدث خطأ أثناء الحفظ')
       setUploadState(receiptUrl ? 'done' : 'idle')
