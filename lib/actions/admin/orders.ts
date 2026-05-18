@@ -41,16 +41,19 @@ export async function assignTechnician(
   orderId: string,
   technicianId: string
 ): Promise<{ error?: string }> {
+  console.log('assignTechnician called:', { orderId, technicianId })
   const supabase = await createServerClient()
 
   // حذف التعيين القديم إن وجد
   await supabase.from('assignments').delete().eq('order_id', orderId)
 
   // إنشاء تعيين جديد
-  const { error: assignErr } = await supabase.from('assignments').insert({
+  const { data, error: assignErr } = await supabase.from('assignments').insert({
     order_id: orderId,
     technician_id: technicianId,
-  })
+  }).select()
+
+  console.log('Assignment result:', JSON.stringify({ data, error: assignErr }))
 
   if (assignErr) {
     console.error('[assignTechnician - assignment]', assignErr)
