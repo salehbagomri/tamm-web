@@ -42,7 +42,8 @@ export async function assignTechnician(
   technicianId: string
 ): Promise<{ error?: string }> {
   const supabase = await createServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  console.log('Auth user:', JSON.stringify({ userId: user?.id, authError }))
   if (!user) return { error: 'يجب تسجيل الدخول أولاً' }
 
   // حذف التعيين القديم إن وجد
