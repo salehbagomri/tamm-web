@@ -228,8 +228,6 @@ export async function updateReceiptUrl(
   orderId: string,
   receiptUrl: string
 ): Promise<{ success: boolean; error?: string }> {
-  console.log('Updating order:', orderId, 'with URL:', receiptUrl)
-
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'يجب تسجيل الدخول أولاً' }
@@ -240,8 +238,6 @@ export async function updateReceiptUrl(
     .eq('id', orderId)
     .select('id, order_number')
     .maybeSingle()
-
-  console.log('Update result:', JSON.stringify({ data: orderRow, error: dbError }))
 
   if (dbError) return { success: false, error: dbError.message }
 
