@@ -228,11 +228,15 @@ export async function updateReceiptUrl(
   orderId: string,
   receiptUrl: string
 ): Promise<{ success: boolean; error?: string }> {
+  console.log('updateReceiptUrl called:', { orderId, receiptUrl })
+  console.log('Service role key exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
+
   const supabase = await createServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  console.log('Auth result:', { userId: user?.id, authError })
   if (!user) return { success: false, error: 'يجب تسجيل الدخول أولاً' }
 
-  const { data: orderRow, error } = await supabase
+  const { data: orderRow, error: dbError } = await supabase
     .from('orders')
     .update({ receipt_url: receiptUrl })
     .eq('id', orderId)
@@ -240,20 +244,27 @@ export async function updateReceiptUrl(
     .select('order_number')
     .single()
 
-  if (error) return { success: false, error: 'حدث خطأ أثناء حفظ الصورة، يرجى المحاولة مرة أخرى' }
+  console.log('DB update result:', { orderRow, dbError })
+
+  if (dbError) {
+    console.error('DB update failed:', dbError)
+    return { success: false, error: dbError.message }
+  }
 
   // Notify manager using service-role client (bypasses RLS on profiles)
   try {
     const admin = createAdminClient()
-    const { data: manager } = await admin
+    const { data: manager, error: managerError } = await admin
       .from('profiles')
       .select('id')
       .eq('role', 'manager')
       .limit(1)
       .maybeSingle()
 
+    console.log('Manager lookup result:', { manager, managerError })
+
     if (manager?.id) {
-      await admin.from('notifications').insert({
+      const { error: notifError } = await admin.from('notifications').insert({
         user_id: manager.id,
         title: 'سند تحويل جديد',
         body: `قام العميل بإرفاق سند التحويل للطلب #${orderRow.order_number}`,
@@ -261,9 +272,10 @@ export async function updateReceiptUrl(
         order_id: orderId,
         is_read: false,
       })
+      console.log('Notification insert result:', { notifError })
     }
-  } catch {
-    // Notification failure must not block the receipt save
+  } catch (err) {
+    console.error('Notification error:', err)
   }
 
   revalidatePath(`/orders/${orderId}`)
