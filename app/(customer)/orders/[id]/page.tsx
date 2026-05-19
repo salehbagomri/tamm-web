@@ -2,7 +2,6 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase/server'
 import { getOrderById } from '@/lib/data/orders'
-import { getPaymentMethods } from '@/lib/data/payment'
 import OrderDetailHeader from '@/components/customer/orders/OrderDetailHeader'
 import OrderTimeline from '@/components/customer/orders/OrderTimeline'
 import OrderDetailCard from '@/components/customer/orders/OrderDetailCard'
@@ -29,17 +28,11 @@ export default async function OrderDetailPage({ params }: Props) {
 
   if (!user) redirect('/login')
 
-  const [order, paymentMethods] = await Promise.all([
+  const [order, review] = await Promise.all([
     getOrderById(id, user.id),
-    getPaymentMethods(),
+    getReviewByOrderId(supabase, id),
   ])
   if (!order) notFound()
-
-  const review = await getReviewByOrderId(supabase, id)
-
-  const paymentMethod = order.paymentMethodId
-    ? (paymentMethods.find((m) => m.id === order.paymentMethodId) ?? null)
-    : null
 
   return (
     <OrderDetailRealtimeWrapper orderId={id}>
@@ -73,7 +66,7 @@ export default async function OrderDetailPage({ params }: Props) {
           <OrderItemsList order={order} />
 
           {/* 5–8. Delivery + payment + receipt + notes */}
-          <OrderDetailCard order={order} paymentMethod={paymentMethod} />
+          <OrderDetailCard order={order} />
 
           {/* 7. Technician info */}
           <TechnicianCard order={order} />

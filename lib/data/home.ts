@@ -84,6 +84,8 @@ function mapOrder(r: RawOrder): Order {
     rejectionReason: r.rejection_reason, quoteAttachmentUrl: r.quote_attachment_url,
     paymentType: (r.payment_type as 'cash' | 'bank' | 'wallet') ?? 'cash',
     paymentMethodId: r.payment_method_id ?? null,
+    paymentMethodName: null,
+    paymentMethodAccountNumber: null,
     city: r.city ?? null,
     latitude: r.latitude ?? null,
     longitude: r.longitude ?? null,
