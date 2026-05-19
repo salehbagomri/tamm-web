@@ -188,8 +188,6 @@ export async function getAdminOrderById(orderId: string): Promise<AdminOrderDeta
     quoteAttachmentUrl: data.quote_attachment_url ?? null,
     paymentType: data.payment_type ?? 'cash',
     paymentMethodId: data.payment_method_id ?? null,
-    paymentMethodName: null,
-    paymentMethodAccountNumber: null,
     city: data.city ?? null,
     latitude: data.latitude ?? null,
     longitude: data.longitude ?? null,

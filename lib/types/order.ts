@@ -63,8 +63,6 @@ export type Order = {
   quoteAttachmentUrl: string | null
   paymentType: 'cash' | 'bank' | 'wallet'
   paymentMethodId: string | null
-  paymentMethodName: string | null
-  paymentMethodAccountNumber: string | null
   city: string | null
   latitude: number | null
   longitude: number | null

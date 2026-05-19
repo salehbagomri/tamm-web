@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { Order } from '@/lib/types/order'
+import type { PaymentMethod } from '@/lib/types/payment'
 import ReceiptUpload from './ReceiptUpload'
 
 const ICON_CASH = (
@@ -57,7 +58,7 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
   )
 }
 
-export default function OrderDetailCard({ order }: { order: Order }) {
+export default function OrderDetailCard({ order, paymentMethod }: { order: Order; paymentMethod?: PaymentMethod | null }) {
   const [copiedAccount, setCopiedAccount] = useState(false)
 
   function copyAccount(text: string) {
@@ -123,11 +124,11 @@ export default function OrderDetailCard({ order }: { order: Order }) {
             {/* Name row */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', color: 'var(--text-primary)', fontWeight: 600, fontSize: '0.9375rem' }}>
               {order.paymentType === 'bank' ? ICON_BANK : ICON_WALLET}
-              <span>{order.paymentMethodName ?? (order.paymentType === 'bank' ? 'بنك أو صراف' : 'محفظة إلكترونية')}</span>
+              <span>{paymentMethod?.name ?? (order.paymentType === 'bank' ? 'بنك أو صراف' : 'محفظة إلكترونية')}</span>
             </div>
 
             {/* Account number + copy */}
-            {order.paymentMethodAccountNumber && (
+            {paymentMethod?.accountNumber && (
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 backgroundColor: 'var(--bg-surface2)', borderRadius: '10px', padding: '0.75rem 1rem',
@@ -135,11 +136,11 @@ export default function OrderDetailCard({ order }: { order: Order }) {
                 <div>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-faint)', margin: '0 0 0.125rem' }}>رقم الحساب</p>
                   <p style={{ fontSize: '1rem', color: 'var(--text-primary)', fontWeight: 700, margin: 0, letterSpacing: '0.05em', direction: 'ltr', textAlign: 'right' }}>
-                    {order.paymentMethodAccountNumber}
+                    {paymentMethod.accountNumber}
                   </p>
                 </div>
                 <button
-                  onClick={() => copyAccount(order.paymentMethodAccountNumber!)}
+                  onClick={() => copyAccount(paymentMethod.accountNumber!)}
                   title="نسخ رقم الحساب"
                   style={{
                     background: 'none', border: 'none', cursor: 'pointer', padding: '6px',
