@@ -1,0 +1,2 @@
+export const SUPPORT_PHONE = '770727055'
+export const SUPPORT_WHATSAPP = '967770727055'

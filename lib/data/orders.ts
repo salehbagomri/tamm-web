@@ -44,6 +44,8 @@ function mapOrder(raw: any): Order {
     quoteAttachmentUrl: raw.quote_attachment_url,
     paymentType: raw.payment_type ?? 'cash',
     paymentMethodId: raw.payment_method_id ?? null,
+    paymentMethodName: raw.payment_method?.name ?? null,
+    paymentMethodAccountNumber: raw.payment_method?.account_number ?? null,
     city: raw.city ?? null,
     latitude: raw.latitude ?? null,
     longitude: raw.longitude ?? null,
@@ -86,7 +88,8 @@ export async function getOrderById(orderId: string, customerId: string): Promise
           *,
           product:products (*),
           service:service_types (*)
-        )
+        ),
+        payment_method:payment_methods(id, name, account_number)
       `)
       .eq('id', orderId)
       .eq('customer_id', customerId)
