@@ -63,6 +63,7 @@ export default function AdminOrderActions({ order, technicians }: AdminOrderActi
   const [schedDate, setSchedDate]         = useState(order.preferredDate ?? '')
   const [schedPeriod, setSchedPeriod]     = useState(order.scheduledPeriod ?? '')
   const [schedHour, setSchedHour]         = useState(order.scheduledHour ?? '')
+  const [notesForTech, setNotesForTech]   = useState(order.managerNotes ?? '')
 
   function showSuccess(msg: string) {
     setSuccess(msg); setError('')
@@ -81,7 +82,7 @@ export default function AdminOrderActions({ order, technicians }: AdminOrderActi
   async function handleAssign() {
     if (!selectedTech) { setError('يرجى اختيار الفني'); return }
     setLoading(true)
-    const res = await assignTechnician(order.id, selectedTech)
+    const res = await assignTechnician(order.id, selectedTech, notesForTech)
     if (!res.error && (schedPeriod || schedHour)) {
       await scheduleOrder(order.id, schedPeriod, schedHour)
     }
@@ -179,6 +180,21 @@ export default function AdminOrderActions({ order, technicians }: AdminOrderActi
                 return null
               })()}
             </div>
+            <div>
+              <label style={labelStyle}>تعليمات وتوجيهات للفني (اختياري)</label>
+              <textarea
+                value={notesForTech}
+                onChange={(e) => setNotesForTech(e.target.value)}
+                placeholder="مثال: يرجى الاتصال بالعميل قبل الوصول بنصف ساعة، الباب الخلفي للموقع..."
+                style={{
+                  ...selectStyle,
+                  minHeight: '80px',
+                  resize: 'vertical',
+                  fontSize: '0.85rem',
+                  lineHeight: 1.4,
+                }}
+              />
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
               <div>
                 <label style={labelStyle}>الفترة</label>
@@ -230,6 +246,12 @@ export default function AdminOrderActions({ order, technicians }: AdminOrderActi
               <div style={{ backgroundColor: 'var(--bg-surface2)', borderRadius: '10px', padding: '0.875rem' }}>
                 <p style={{ margin: '0 0 0.25rem', fontSize: '0.75rem', color: 'var(--text-faint)' }}>الساعة</p>
                 <p style={{ margin: 0, color: 'var(--text-primary)', fontWeight: 600 }}>{order.scheduledHour}</p>
+              </div>
+            )}
+            {order.managerNotes && (
+              <div style={{ backgroundColor: 'var(--bg-surface2)', borderRadius: '10px', padding: '0.875rem', gridColumn: 'span 2', borderRight: '3px solid var(--blue-primary)' }}>
+                <p style={{ margin: '0 0 0.25rem', fontSize: '0.75rem', color: 'var(--text-faint)' }}>تعليمات وتوجيهات المدير المرسلة للفني:</p>
+                <p style={{ margin: 0, color: 'var(--text-primary)', fontSize: '0.85rem', lineHeight: 1.4 }}>{order.managerNotes}</p>
               </div>
             )}
           </div>

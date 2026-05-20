@@ -44,6 +44,7 @@ export type AdminOrderDetail = Order & {
   photoUrls: string[] | null
   startedAt: string | null
   completedAt: string | null
+  managerNotes: string | null
 }
 
 export type AvailableTechnician = {
@@ -161,7 +162,7 @@ export async function getAdminOrderById(orderId: string): Promise<AdminOrderDeta
         service_types(id, name)
       ),
       assignments(
-        id, technician_id, technician_notes, photo_url, photo_urls, started_at, completed_at, created_at,
+        id, technician_id, technician_notes, photo_url, photo_urls, started_at, completed_at, created_at, manager_notes,
         technicians(profiles(id, full_name, phone))
       )
     `)
@@ -212,6 +213,7 @@ export async function getAdminOrderById(orderId: string): Promise<AdminOrderDeta
     photoUrls: assignment?.photo_urls ?? null,
     startedAt: assignment?.started_at ?? null,
     completedAt: assignment?.completed_at ?? null,
+    managerNotes: assignment?.manager_notes ?? null,
     customerProfile: customerProfile ? {
       id: customerProfile.id,
       email: customerProfile.email ?? '',

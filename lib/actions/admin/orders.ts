@@ -73,7 +73,8 @@ export async function updateOrderStatus(
 
 export async function assignTechnician(
   orderId: string,
-  technicianId: string
+  technicianId: string,
+  managerNotes?: string
 ): Promise<{ error?: string }> {
   try {
     const supabase = await createServerClient()
@@ -89,6 +90,7 @@ export async function assignTechnician(
       technician_id: technicianId,
       assigned_by: user.id,
       status: 'assigned',
+      manager_notes: managerNotes || null,
     })
 
     if (assignErr) return { error: 'فشل تعيين الفني' }
