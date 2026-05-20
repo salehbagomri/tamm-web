@@ -17,45 +17,44 @@ export async function getAdminTechnicians(): Promise<AdminTechnician[]> {
     .from('technicians')
     .select(`
       id, profile_id, is_active, status,
-      profiles!technicians_profile_id_fkey(full_name, phone, email)
+      profiles!technicians_profile_id_fkey(full_name, phone, email),
+      assignments(count)
     `)
     .order('created_at', { ascending: false })
 
   if (error) { console.error('[getAdminTechnicians]', error); return [] }
 
-  const results: AdminTechnician[] = []
-  for (const t of data ?? []) {
-    const { count } = await supabase
-      .from('assignments')
-      .select('*', { count: 'exact', head: true })
-      .eq('technician_id', t.id)
+  return (data ?? []).map((t: any) => {
+    const assignments = t.assignments
+    const count = Array.isArray(assignments) && assignments[0] ? (assignments[0].count ?? 0) : 0
 
-    results.push({
+    return {
       technicianId: t.id,
       profileId: t.profile_id,
-      name: (t.profiles as any)?.full_name ?? 'فني',
-      phone: (t.profiles as any)?.phone ?? null,
-      email: (t.profiles as any)?.email ?? null,
+      name: t.profiles?.full_name ?? 'فني',
+      phone: t.profiles?.phone ?? null,
+      email: t.profiles?.email ?? null,
       isAvailable: t.status === 'available',
-      assignedOrdersCount: count ?? 0,
-    })
-  }
-  return results
+      assignedOrdersCount: count,
+    }
+  })
 }
 
 export async function getAdminTechnicianById(id: string): Promise<AdminTechnician | null> {
   const supabase = await createServerClient()
   const { data, error } = await supabase
     .from('technicians')
-    .select('id, profile_id, is_active, status, profiles!technicians_profile_id_fkey(full_name, phone, email)')
+    .select(`
+      id, profile_id, is_active, status,
+      profiles!technicians_profile_id_fkey(full_name, phone, email),
+      assignments(count)
+    `)
     .eq('id', id)
     .single()
 
   if (error || !data) return null
-  const { count } = await supabase
-    .from('assignments')
-    .select('*', { count: 'exact', head: true })
-    .eq('technician_id', data.id)
+  const assignments = (data as any).assignments
+  const count = Array.isArray(assignments) && assignments[0] ? (assignments[0].count ?? 0) : 0
 
   return {
     technicianId: data.id,
@@ -64,7 +63,7 @@ export async function getAdminTechnicianById(id: string): Promise<AdminTechnicia
     phone: (data.profiles as any)?.phone ?? null,
     email: (data.profiles as any)?.email ?? null,
     isAvailable: data.status === 'available',
-    assignedOrdersCount: count ?? 0,
+    assignedOrdersCount: count,
   }
 }
 

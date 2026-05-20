@@ -22,7 +22,8 @@ export default function AdminCustomerInfo({ order, paymentMethod, review }: { or
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
           {[
             { label: 'الاسم',   value: customer?.fullName ?? '—' },
-            { label: 'الجوال',  value: customer?.phone ?? '—' },
+            { label: 'الجوال (الحساب)',  value: customer?.phone ?? '—' },
+            ...(order.contactPhone ? [{ label: 'جوال التواصل (للطلب)', value: order.contactPhone }] : []),
             { label: 'العنوان', value: order.address, full: true },
           ].map((row) => (
             <div key={row.label} style={{

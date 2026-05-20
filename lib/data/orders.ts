@@ -50,6 +50,7 @@ function mapOrder(raw: any): Order {
     latitude: raw.latitude ?? null,
     longitude: raw.longitude ?? null,
     receiptUrl: raw.receipt_url ?? null,
+    contactPhone: raw.contact_phone ?? null,
   }
 }
 

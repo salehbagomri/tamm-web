@@ -228,6 +228,7 @@ export async function getAdminOrderById(orderId: string): Promise<AdminOrderDeta
       service: item.service_types ?? undefined,
     })),
     receiptUrl: data.receipt_url ?? null,
+    contactPhone: data.contact_phone ?? null,
   }
 }
 
