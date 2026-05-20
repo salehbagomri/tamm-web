@@ -51,6 +51,13 @@ export default function AdminProductForm({ product }: AdminProductFormProps) {
   const [specs, setSpecs]                         = useState<{ key: string; value: string }[]>(
     Object.entries(product?.specs ?? {}).map(([key, value]) => ({ key, value: String(value) }))
   )
+  // حقول المخزون والتكلفة
+  const [costPrice, setCostPrice]                 = useState(product?.costPrice?.toString() ?? '')
+  const [stockQuantity, setStockQuantity]         = useState(product?.stockQuantity?.toString() ?? '0')
+  const [lowStockThreshold, setLowStockThreshold] = useState(product?.lowStockThreshold?.toString() ?? '3')
+  const [supplierName, setSupplierName]           = useState(product?.supplierName ?? '')
+  const [supplierSku, setSupplierSku]             = useState(product?.supplierSku ?? '')
+  const [autoHideWhenOut, setAutoHideWhenOut]     = useState(product?.autoHideWhenOut ?? true)
 
   const [loading, setLoading]     = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -92,6 +99,12 @@ export default function AdminProductForm({ product }: AdminProductFormProps) {
       isAvailable, isFeatured,
       imageUrl: imageUrl || null,
       specs: specsObj,
+      costPrice: costPrice ? parseFloat(costPrice) : null,
+      stockQuantity: parseInt(stockQuantity) || 0,
+      lowStockThreshold: parseInt(lowStockThreshold) || 3,
+      supplierName: supplierName || null,
+      supplierSku: supplierSku || null,
+      autoHideWhenOut,
     }
 
     if (isEdit) {
@@ -171,6 +184,54 @@ export default function AdminProductForm({ product }: AdminProductFormProps) {
             </div>
           )}
         </div>
+      </div>
+
+      {/* ── المخزون والتكلفة ── */}
+      <div style={{ ...card, borderRight: '3px solid var(--warning)' }}>
+        <h3 style={h3}>📦 المخزون والتكلفة — <span style={{ fontSize: '0.75rem', color: 'var(--text-faint)', fontWeight: 400 }}>معلومات سرية لا تظهر للعميل</span></h3>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+          <div>
+            <label style={labelStyle}>سعر التكلفة من المورد (ر.س)</label>
+            <input type="number" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} style={inputStyle} placeholder="0" min="0" step="0.01" />
+          </div>
+          <div>
+            <label style={labelStyle}>الكمية المتوفرة</label>
+            <input type="number" value={stockQuantity} onChange={(e) => setStockQuantity(e.target.value)} style={inputStyle} placeholder="0" min="0" step="1" />
+          </div>
+          <div>
+            <label style={labelStyle}>حد التنبيه (كمية)</label>
+            <input type="number" value={lowStockThreshold} onChange={(e) => setLowStockThreshold(e.target.value)} style={inputStyle} placeholder="3" min="0" step="1" />
+          </div>
+          <div>
+            <label style={labelStyle}>اسم المورد</label>
+            <input value={supplierName} onChange={(e) => setSupplierName(e.target.value)} style={inputStyle} placeholder="مثال: شركة النور" />
+          </div>
+          <div>
+            <label style={labelStyle}>كود المنتج عند المورد (SKU)</label>
+            <input value={supplierSku} onChange={(e) => setSupplierSku(e.target.value)} style={inputStyle} placeholder="مثال: AC-SP-1500" />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+            <label style={checkboxRow}>
+              <input type="checkbox" checked={autoHideWhenOut} onChange={(e) => setAutoHideWhenOut(e.target.checked)} style={{ accentColor: 'var(--warning)', width: '18px', height: '18px' }} />
+              <span style={{ color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: 500 }}>إخفاء تلقائي عند نفاد الكمية</span>
+            </label>
+          </div>
+        </div>
+        {costPrice && price && !isPriceOnRequest && (() => {
+          const cost = parseFloat(costPrice)
+          const sell = parseFloat(price)
+          if (cost > 0 && sell > 0) {
+            const profit = sell - cost
+            const margin = ((profit / sell) * 100).toFixed(1)
+            return (
+              <div style={{ marginTop: '1rem', padding: '0.75rem 1rem', borderRadius: '10px', backgroundColor: profit > 0 ? 'rgba(34,201,138,0.08)' : 'rgba(224,82,82,0.08)', border: `1px solid ${profit > 0 ? 'rgba(34,201,138,0.25)' : 'rgba(224,82,82,0.25)'}`, display: 'flex', gap: '1.5rem', fontSize: '0.85rem' }}>
+                <span style={{ color: 'var(--text-second)' }}>💰 هامش الربح: <strong style={{ color: profit > 0 ? 'var(--success)' : 'var(--error)' }}>{profit.toFixed(2)} ر.س</strong></span>
+                <span style={{ color: 'var(--text-second)' }}>📊 النسبة: <strong style={{ color: profit > 0 ? 'var(--success)' : 'var(--error)' }}>{margin}%</strong></span>
+              </div>
+            )
+          }
+          return null
+        })()}
       </div>
 
       {/* ── الصورة ── */}

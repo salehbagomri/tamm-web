@@ -25,6 +25,13 @@ export type ProductFormData = {
   isFeatured: boolean
   imageUrl?: string | null
   specs?: Record<string, string>
+  // حقول المخزون والتكلفة
+  costPrice?: number | null
+  stockQuantity?: number
+  lowStockThreshold?: number
+  supplierName?: string | null
+  supplierSku?: string | null
+  autoHideWhenOut?: boolean
 }
 
 export async function createProduct(data: ProductFormData): Promise<{ id?: string; error?: string }> {
@@ -44,6 +51,12 @@ export async function createProduct(data: ProductFormData): Promise<{ id?: strin
     is_featured: data.isFeatured,
     image_url: data.imageUrl ?? null,
     specs: data.specs ?? {},
+    cost_price: data.costPrice ?? null,
+    stock_quantity: data.stockQuantity ?? 0,
+    low_stock_threshold: data.lowStockThreshold ?? 3,
+    supplier_name: data.supplierName?.trim() || null,
+    supplier_sku: data.supplierSku?.trim() || null,
+    auto_hide_when_out: data.autoHideWhenOut ?? true,
   }).select('id').single()
 
   if (error) { console.error('[createProduct]', error); return { error: 'فشل إنشاء المنتج' } }
@@ -68,6 +81,12 @@ export async function updateProduct(id: string, data: ProductFormData): Promise<
     is_featured: data.isFeatured,
     image_url: data.imageUrl ?? null,
     specs: data.specs ?? {},
+    cost_price: data.costPrice ?? null,
+    stock_quantity: data.stockQuantity ?? 0,
+    low_stock_threshold: data.lowStockThreshold ?? 3,
+    supplier_name: data.supplierName?.trim() || null,
+    supplier_sku: data.supplierSku?.trim() || null,
+    auto_hide_when_out: data.autoHideWhenOut ?? true,
     updated_at: new Date().toISOString(),
   }).eq('id', id)
 

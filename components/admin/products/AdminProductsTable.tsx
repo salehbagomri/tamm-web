@@ -100,7 +100,7 @@ export default function AdminProductsTable({ products, totalCount }: { products:
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ backgroundColor: 'var(--bg-surface2)' }}>
-                {['', 'المنتج', 'الفئة', 'السعر', 'متاح', 'مميز', ''].map((h, i) => (
+                {['', 'المنتج', 'الفئة', 'السعر', 'المخزون', 'متاح', 'مميز', ''].map((h, i) => (
                   <th key={i} style={{ padding: '0.75rem 1rem', textAlign: 'right', fontSize: '0.8rem', color: 'var(--text-faint)', fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -131,6 +131,21 @@ export default function AdminProductsTable({ products, totalCount }: { products:
                   <td style={{ padding: '0.75rem 1rem', whiteSpace: 'nowrap', fontSize: '0.875rem', color: 'var(--text-primary)', fontWeight: 500 }}>
                     {p.isPriceOnRequest ? <span style={{ color: 'var(--warning)' }}>عند الطلب</span>
                       : formatPrice(p.price ?? 0)}
+                    {p.costPrice != null && p.price != null && !p.isPriceOnRequest && p.costPrice > 0 && (() => {
+                      const profit = p.price - p.costPrice
+                      return <span style={{ display: 'block', fontSize: '0.7rem', color: profit > 0 ? 'var(--success)' : 'var(--error)', marginTop: '0.125rem' }}>+{profit.toFixed(0)} ربح</span>
+                    })()}
+                  </td>
+                  {/* المخزون */}
+                  <td style={{ padding: '0.75rem 1rem' }}>
+                    {(() => {
+                      const qty = p.stockQuantity
+                      const threshold = p.lowStockThreshold
+                      let bgColor = 'rgba(34,201,138,0.1)'; let textColor = 'var(--success)'; let label = `${qty} متوفر`
+                      if (qty <= 0) { bgColor = 'rgba(224,82,82,0.1)'; textColor = 'var(--error)'; label = 'نفد' }
+                      else if (qty <= threshold) { bgColor = 'rgba(245,166,35,0.1)'; textColor = 'var(--warning)'; label = `${qty} منخفض` }
+                      return <span style={{ padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600, backgroundColor: bgColor, color: textColor }}>{label}</span>
+                    })()}
                   </td>
                   {/* Toggle المتاح */}
                   <td style={{ padding: '0.75rem 1rem' }}>
@@ -171,6 +186,14 @@ export default function AdminProductsTable({ products, totalCount }: { products:
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
                   <span style={{ padding: '0.15rem 0.5rem', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 600, backgroundColor: 'rgba(21,118,212,0.1)', color: 'var(--blue-light)' }}>{CATEGORY_LABELS[p.category]}</span>
                   <span style={{ fontSize: '0.8125rem', color: 'var(--text-primary)', fontWeight: 500 }}>{p.isPriceOnRequest ? 'عند الطلب' : formatPrice(p.price ?? 0)}</span>
+                  {(() => {
+                    const qty = p.stockQuantity
+                    const threshold = p.lowStockThreshold
+                    let bgColor = 'rgba(34,201,138,0.1)'; let textColor = 'var(--success)'; let label = `${qty}`
+                    if (qty <= 0) { bgColor = 'rgba(224,82,82,0.1)'; textColor = 'var(--error)'; label = 'نفد' }
+                    else if (qty <= threshold) { bgColor = 'rgba(245,166,35,0.1)'; textColor = 'var(--warning)'; label = `${qty}` }
+                    return <span style={{ padding: '0.15rem 0.5rem', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 600, backgroundColor: bgColor, color: textColor }}>📦 {label}</span>
+                  })()}
                   <Toggle id={p.id} checked={p.isAvailable} onToggle={() => handleToggle(p.id, p.isAvailable)} />
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
