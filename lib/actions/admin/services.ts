@@ -58,7 +58,7 @@ export async function updateService(id: string, data: ServiceFormData): Promise<
     icon_name: data.iconName ?? null,
   }).eq('id', id)
 
-  if (error) { console.error('[updateService]', error); return { error: 'فشل تحديث الخدمة' } }
+  if (error) { console.error('[updateService]', error); return { error: `فشل تحديث الخدمة: ${error.message} (code: ${error.code})` } }
   revalidateServices(id)
   return {}
 }
