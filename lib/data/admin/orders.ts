@@ -99,7 +99,7 @@ export async function getAdminOrders(filters: AdminOrderFilters = {}): Promise<{
     .select(
       `id, order_number, order_type, status, total_amount, address,
        preferred_date, preferred_time_slot, notes, created_at,
-       quote_status, quote_price, contact_phone,
+       quote_status, quote_price,
        profiles!orders_customer_id_fkey(full_name, phone),
        assignments(technicians(profiles(full_name)))`,
       { count: 'exact' }
@@ -274,7 +274,7 @@ export async function getAdminQuotes(filters: AdminQuoteFilters = {}): Promise<{
     .select(
       `id, order_number, order_type, status, total_amount, address,
        preferred_date, preferred_time_slot, notes, created_at,
-       quote_status, quote_price, quote_responded_at, contact_phone,
+       quote_status, quote_price, quote_responded_at,
        profiles!orders_customer_id_fkey(full_name, phone),
        assignments(technicians(profiles(full_name)))`,
       { count: 'exact' }
