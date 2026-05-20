@@ -2,6 +2,7 @@
 
 import { createServerClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { notifyManagers } from '@/lib/actions/notifications'
 
 export interface CheckoutData {
   address: string
@@ -105,6 +106,18 @@ export async function createProductOrder(
     return { error: `حدث خطأ أثناء حفظ المنتجات: ${itemsErr.message}` }
   }
 
+  // إرسال إشعار للمديرين بطلب جديد
+  try {
+    await notifyManagers({
+      title: 'طلب منتجات جديد',
+      body: `تم تقديم طلب منتجات جديد رقم #${order.order_number}`,
+      type: 'new_order',
+      orderId: order.id,
+    })
+  } catch (err) {
+    console.error('[createProductOrder notification error]', err)
+  }
+
   revalidatePath('/orders')
   return { orderNumber: order.order_number as string, orderId: order.id as string }
 }
@@ -153,6 +166,21 @@ export async function createServiceOrder(
     include_installation: false,
   })
 
+  // إرسال إشعار للمديرين بطلب خدمة أو طلب عرض سعر جديد
+  try {
+    const isQuote = isQuoteBased
+    await notifyManagers({
+      title: isQuote ? 'طلب عرض سعر جديد' : 'طلب خدمة جديد',
+      body: isQuote 
+        ? `طلب عرض سعر جديد للخدمة (${serviceName}) رقم #${order.order_number}`
+        : `تم تقديم طلب خدمة (${serviceName}) جديد رقم #${order.order_number}`,
+      type: isQuote ? 'new_quote_request' : 'new_order',
+      orderId: order.id,
+    })
+  } catch (err) {
+    console.error('[createServiceOrder notification error]', err)
+  }
+
   revalidatePath('/orders')
   return { orderNumber: order.order_number as string }
 }
@@ -184,6 +212,18 @@ export async function createQuoteRequest(quoteData: QuoteData): Promise<ActionRe
 
   if (orderErr || !order) return { error: 'حدث خطأ أثناء إرسال الطلب' }
 
+  // إرسال إشعار للمديرين بطلب عرض سعر مخصص جديد
+  try {
+    await notifyManagers({
+      title: 'طلب عرض سعر جديد',
+      body: `تم تقديم طلب عرض سعر مخصص جديد رقم #${order.order_number}`,
+      type: 'new_quote_request',
+      orderId: order.id,
+    })
+  } catch (err) {
+    console.error('[createQuoteRequest notification error]', err)
+  }
+
   return { orderNumber: order.order_number as string }
 }
 
@@ -199,7 +239,7 @@ export async function respondToQuote(
 
   const { data: order } = await supabase
     .from('orders')
-    .select('id, quote_status')
+    .select('id, quote_status, order_number')
     .eq('id', orderId)
     .eq('customer_id', user.id)
     .single()
@@ -223,6 +263,18 @@ export async function respondToQuote(
     .eq('id', orderId)
 
   if (error) return { error: 'حدث خطأ أثناء حفظ الرد' }
+
+  // إرسال إشعار للمديرين برد العميل على عرض السعر
+  try {
+    await notifyManagers({
+      title: 'رد على عرض السعر',
+      body: `قام العميل بالرد بـ (${response === 'accepted' ? 'القبول' : 'الرفض'}) على عرض السعر للطلب رقم #${order.order_number}`,
+      type: 'quote_response',
+      orderId,
+    })
+  } catch (err) {
+    console.error('[respondToQuote notification error]', err)
+  }
 
   revalidatePath('/orders')
   revalidatePath(`/orders/${orderId}`)

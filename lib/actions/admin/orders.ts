@@ -3,6 +3,17 @@
 import { revalidatePath } from 'next/cache'
 import { createServerClient } from '@/lib/supabase/server'
 import type { OrderStatus } from '@/lib/types/order'
+import { sendNotification } from '@/lib/actions/notifications'
+
+const STATUS_ARABIC: Record<string, string> = {
+  pending: 'قيد الانتظار',
+  confirmed: 'تم التأكيد',
+  assigned: 'تم تعيين فني',
+  on_the_way: 'الفني في الطريق',
+  in_progress: 'قيد العمل',
+  completed: 'مكتمل',
+  cancelled: 'ملغي',
+}
 
 // ─── revalidate helper ────────────────────────────────────────────────────────
 
@@ -29,6 +40,29 @@ export async function updateOrderStatus(
   if (error) {
     console.error('[updateOrderStatus]', error)
     return { error: 'فشل تحديث حالة الطلب' }
+  }
+
+  // إرسال إشعار للعميل
+  try {
+    const { data: order } = await supabase
+      .from('orders')
+      .select('customer_id, order_number')
+      .eq('id', orderId)
+      .single()
+
+    if (order?.customer_id) {
+      const statusAr = STATUS_ARABIC[status] || status
+      await sendNotification({
+        userId: order.customer_id,
+        title: 'تحديث حالة الطلب',
+        body: `تم تحديث حالة طلبك #${order.order_number} إلى (${statusAr})`,
+        type: 'order_update',
+        notificationType: `order_${status}`,
+        orderId,
+      })
+    }
+  } catch (err) {
+    console.error('[updateOrderStatus notification error]', err)
   }
 
   revalidateAll(orderId)
@@ -66,6 +100,28 @@ export async function assignTechnician(
       .eq('id', orderId)
 
     if (statusErr) return { error: 'تم تعيين الفني لكن فشل تحديث الحالة' }
+
+    // إرسال إشعار للعميل
+    try {
+      const { data: order } = await supabase
+        .from('orders')
+        .select('customer_id, order_number')
+        .eq('id', orderId)
+        .single()
+
+      if (order?.customer_id) {
+        await sendNotification({
+          userId: order.customer_id,
+          title: 'تم تعيين فني لطلبك',
+          body: `تم تعيين فني للبدء في طلبك رقم #${order.order_number}`,
+          type: 'order_update',
+          notificationType: 'technician_assigned',
+          orderId,
+        })
+      }
+    } catch (err) {
+      console.error('[assignTechnician notification error]', err)
+    }
 
     revalidateAll(orderId)
     return {}
@@ -132,6 +188,28 @@ export async function sendQuote(
   if (error) {
     console.error('[sendQuote]', error)
     return { error: 'فشل إرسال عرض السعر' }
+  }
+
+  // إرسال إشعار للعميل
+  try {
+    const { data: order } = await supabase
+      .from('orders')
+      .select('customer_id, order_number')
+      .eq('id', orderId)
+      .single()
+
+    if (order?.customer_id) {
+      await sendNotification({
+        userId: order.customer_id,
+        title: 'عرض سعر جديد',
+        body: `تم إعداد وإرسال عرض السعر لطلبك رقم #${order.order_number}`,
+        type: 'quote_sent',
+        notificationType: 'quote_sent',
+        orderId,
+      })
+    }
+  } catch (err) {
+    console.error('[sendQuote notification error]', err)
   }
 
   revalidateAll(orderId)
