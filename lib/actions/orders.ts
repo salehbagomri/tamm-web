@@ -126,18 +126,19 @@ export async function createProductOrder(
 
   // ─── خصم الكمية من المخزون + تنبيهات ────────────────────────────
   try {
+    const adminClient = createAdminClient()
     for (const item of cartItems) {
       const product = stockData.find(p => p.id === item.id)!
       const newQty = product.stock_quantity - item.quantity
 
       const updateData: Record<string, unknown> = { stock_quantity: newQty }
       // إخفاء تلقائي إذا وصلت الكمية للصفر
-      const { data: prodFull } = await supabase.from('products').select('auto_hide_when_out, low_stock_threshold, name').eq('id', item.id).single()
+      const { data: prodFull } = await adminClient.from('products').select('auto_hide_when_out, low_stock_threshold, name').eq('id', item.id).single()
       if (newQty <= 0 && prodFull?.auto_hide_when_out) {
         updateData.is_available = false
       }
 
-      await supabase.from('products').update(updateData).eq('id', item.id)
+      await adminClient.from('products').update(updateData).eq('id', item.id)
 
       // إشعار المدير عند انخفاض المخزون
       const threshold = prodFull?.low_stock_threshold ?? 3
