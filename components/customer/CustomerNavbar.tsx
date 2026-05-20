@@ -7,6 +7,7 @@ import Image from 'next/image'
 import type { UserProfile } from '@/lib/types/user'
 import { signOut } from '@/lib/actions/auth'
 import { useCart } from '@/lib/store/cart-context'
+import { createClient } from '@/lib/supabase/client'
 
 const NAV_LINKS = [
   { href: '/home', label: 'الرئيسية' },
@@ -25,6 +26,49 @@ export default function CustomerNavbar({ user }: CustomerNavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { totalItems } = useCart()
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  // جلب وتحديث الإشعارات غير المقروءة فوريًا
+  useEffect(() => {
+    if (!user) return
+    const userId = user.id
+
+    const supabase = createClient()
+
+    async function fetchUnreadCount() {
+      const { count, error } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('is_read', false)
+
+      if (!error && count !== null) {
+        setUnreadCount(count)
+      }
+    }
+
+    fetchUnreadCount()
+
+    const channel = supabase
+      .channel(`user-notifications-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`,
+        },
+        () => {
+          fetchUnreadCount()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [user])
 
   // تأثير التمرير
   useEffect(() => {
@@ -96,6 +140,32 @@ export default function CustomerNavbar({ user }: CustomerNavbarProps) {
 
           {/* أيقونات اليسار */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
+            {/* أيقونة الإشعارات */}
+            {user && (
+              <Link href="/notifications" style={{
+                position: 'relative', color: 'var(--text-second)',
+                textDecoration: 'none', display: 'flex', padding: '0.5rem',
+                borderRadius: '8px', transition: 'color 0.15s',
+              }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                {unreadCount > 0 && (
+                  <span style={{
+                    position: 'absolute', top: '2px', left: '2px',
+                    minWidth: '18px', height: '18px', borderRadius: '999px',
+                    backgroundColor: 'var(--error)', color: '#fff',
+                    fontSize: '0.65rem', fontWeight: 700,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: '0 4px',
+                  }}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </Link>
+            )}
+
             {/* أيقونة السلة */}
             <Link href={user ? '/cart' : '/login'} style={{
               position: 'relative', color: 'var(--text-second)',

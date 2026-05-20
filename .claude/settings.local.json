@@ -9,7 +9,11 @@
       "Bash(wait *)",
       "Bash(Get-ChildItem -Path \"C:\\\\flutterprojects\\\\tamm_web\\\\lib\\\\data\" -Recurse -Filter \"*.ts\")",
       "Bash(Select-Object FullName)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\flutterprojects\\\\tamm_app\\\\lib\\\\features\\\\customer\" -Recurse | Where-Object { $_.Extension -eq \".dart\" } | Select-Object -ExpandProperty FullName | Sort-Object)",
+      "Bash(git revert *)",
+      "Bash(ls -la \"c:\\\\flutterprojects\\\\tamm_web\\\\\" | head -30)",
+      "Read(//c/flutterprojects/**)"
     ]
   }
 }

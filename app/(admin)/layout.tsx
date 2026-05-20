@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import { getDashboardStats } from '@/lib/data/admin/dashboard'
+import { getUnreadNotificationsCount } from '@/lib/data/notifications'
 
 // Layout للمدير — مع Sidebar جانبي
 export default async function AdminLayout({
@@ -22,7 +23,10 @@ export default async function AdminLayout({
   if (profile?.role !== 'manager') redirect('/home')
 
   // جلب أعداد الطلبات المعلقة للـ Sidebar badges
-  const stats = await getDashboardStats()
+  const [stats, unreadNotifications] = await Promise.all([
+    getDashboardStats(),
+    getUnreadNotificationsCount(user.id),
+  ])
 
   return (
     <div
@@ -34,9 +38,11 @@ export default async function AdminLayout({
       }}
     >
       <AdminSidebar
+        managerId={user.id}
         managerName={profile?.full_name}
         pendingOrders={stats.pendingOrders}
         pendingQuotes={stats.pendingQuotes}
+        unreadNotifications={unreadNotifications}
       />
       <main
         style={{

@@ -1,9 +1,8 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 type NavItem = { label: string; path: string; icon: React.ReactNode; countKey?: string }
@@ -32,6 +31,15 @@ const navItems: NavItem[] = [
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+    ),
+  },
+  {
+    label: 'الإشعارات', path: '/admin/notifications', countKey: 'unreadNotifications',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
       </svg>
     ),
   },
@@ -73,22 +81,73 @@ const navItems: NavItem[] = [
 ]
 
 interface AdminSidebarProps {
+  managerId?: string
   managerName?: string | null
   pendingOrders?: number
   pendingQuotes?: number
+  unreadNotifications?: number
 }
 
 export default function AdminSidebar({
+  managerId,
   managerName,
   pendingOrders = 0,
   pendingQuotes = 0,
+  unreadNotifications = 0,
 }: AdminSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [localUnreadCount, setLocalUnreadCount] = useState(unreadNotifications)
 
-  const counts: Record<string, number> = { pendingOrders, pendingQuotes }
+  // مزامنة القيمة الآتية من السيرفر
+  useEffect(() => {
+    setLocalUnreadCount(unreadNotifications)
+  }, [unreadNotifications])
+
+  // الاشتراك الفوري في تنبيهات المدير
+  useEffect(() => {
+    if (!managerId) return
+
+    async function fetchUnreadCount() {
+      const { count, error } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', managerId)
+        .eq('is_read', false)
+
+      if (!error && count !== null) {
+        setLocalUnreadCount(count)
+      }
+    }
+
+    const channel = supabase
+      .channel(`manager-notifications-${managerId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${managerId}`,
+        },
+        () => {
+          fetchUnreadCount()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [managerId, supabase])
+
+  const counts: Record<string, number> = {
+    pendingOrders,
+    pendingQuotes,
+    unreadNotifications: localUnreadCount,
+  }
 
   async function handleSignOut() {
     await supabase.auth.signOut()
