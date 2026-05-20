@@ -33,7 +33,7 @@ export type AdminOrderRow = {
   latitude: number | null
   longitude: number | null
   receiptUrl: string | null
-  contactPhone: string | null
+  contactPhone?: string | null
   quoteRespondedAt: string | null
 }
 
