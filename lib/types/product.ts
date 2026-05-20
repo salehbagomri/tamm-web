@@ -22,4 +22,11 @@ export type Product = {
   requiresInstallation: boolean
   installationPrice: number
   oldPrice: number | null
+  // حقول المخزون والتكلفة — تظهر فقط في لوحة المدير
+  costPrice: number | null
+  stockQuantity: number
+  lowStockThreshold: number
+  supplierName: string | null
+  supplierSku: string | null
+  autoHideWhenOut: boolean
 }

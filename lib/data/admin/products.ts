@@ -24,6 +24,12 @@ function mapProduct(row: any): Product {
     requiresInstallation: row.requires_installation ?? false,
     installationPrice: row.installation_price ?? 0,
     oldPrice: row.old_price ?? null,
+    costPrice: row.cost_price ?? null,
+    stockQuantity: row.stock_quantity ?? 0,
+    lowStockThreshold: row.low_stock_threshold ?? 3,
+    supplierName: row.supplier_name ?? null,
+    supplierSku: row.supplier_sku ?? null,
+    autoHideWhenOut: row.auto_hide_when_out ?? true,
   }
 }
 

@@ -54,6 +54,13 @@ function mapProduct(r: RawProduct): Product {
     brand: r.brand, specs: r.specs, isAvailable: r.is_available,
     isFeatured: r.is_featured, requiresInstallation: r.requires_installation,
     installationPrice: r.installation_price, oldPrice: r.old_price,
+    // حقول المخزون — لا نكشف سعر التكلفة للعميل
+    costPrice: null,
+    stockQuantity: 0,
+    lowStockThreshold: 3,
+    supplierName: null,
+    supplierSku: null,
+    autoHideWhenOut: true,
   }
 }
 
@@ -103,6 +110,7 @@ export async function getFeaturedProducts(): Promise<Product[]> {
       .select('*')
       .eq('is_featured', true)
       .eq('is_available', true)
+      .or('stock_quantity.gt.0,auto_hide_when_out.eq.false')
       .order('created_at', { ascending: false })
       .limit(8)
     return (data as RawProduct[] ?? []).map(mapProduct)

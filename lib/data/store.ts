@@ -8,6 +8,7 @@ type RawProduct = {
   brand: string | null; specs: Record<string, unknown>; is_available: boolean
   is_featured: boolean; requires_installation: boolean
   installation_price: number; old_price: number | null
+  stock_quantity?: number; auto_hide_when_out?: boolean
 }
 
 function mapProduct(r: RawProduct): Product {
@@ -18,6 +19,13 @@ function mapProduct(r: RawProduct): Product {
     brand: r.brand, specs: r.specs, isAvailable: r.is_available,
     isFeatured: r.is_featured, requiresInstallation: r.requires_installation,
     installationPrice: r.installation_price, oldPrice: r.old_price,
+    // حقول المخزون — لا نكشف سعر التكلفة للعميل أبداً
+    costPrice: null,
+    stockQuantity: r.stock_quantity ?? 0,
+    lowStockThreshold: 3,
+    supplierName: null,
+    supplierSku: null,
+    autoHideWhenOut: r.auto_hide_when_out ?? true,
   }
 }
 
@@ -40,6 +48,8 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
   try {
     const supabase = await createServerClient()
     let query = supabase.from('products').select('*', { count: 'exact' }).eq('is_available', true)
+    // إخفاء المنتجات النافدة التي تم تفعيل الإخفاء التلقائي لها
+    query = query.or('stock_quantity.gt.0,auto_hide_when_out.eq.false')
 
     if (category && category !== 'all') query = query.eq('category', category)
     if (search?.trim()) query = query.ilike('name', `%${search.trim()}%`)
@@ -78,6 +88,7 @@ export async function getRelatedProducts(category: string, excludeId: string): P
     const { data } = await supabase
       .from('products').select('*')
       .eq('category', category).eq('is_available', true)
+      .or('stock_quantity.gt.0,auto_hide_when_out.eq.false')
       .neq('id', excludeId).limit(4)
     return (data as RawProduct[] ?? []).map(mapProduct)
   } catch { return [] }
@@ -88,6 +99,7 @@ export async function getCategoryCounts(): Promise<Record<string, number>> {
     const supabase = await createServerClient()
     const { data } = await supabase
       .from('products').select('category').eq('is_available', true)
+      .or('stock_quantity.gt.0,auto_hide_when_out.eq.false')
     if (!data) return {}
     return (data as { category: string }[]).reduce((acc, r) => {
       acc[r.category] = (acc[r.category] ?? 0) + 1
