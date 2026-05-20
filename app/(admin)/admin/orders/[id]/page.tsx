@@ -8,6 +8,7 @@ import AdminOrderActions from '@/components/admin/orders/AdminOrderActions'
 import QuoteManagement from '@/components/admin/orders/QuoteManagement'
 import AdminOrderDetailRealtimeWrapper from '@/components/admin/orders/AdminOrderDetailRealtimeWrapper'
 import { getReviewByOrderId } from '@/lib/data/reviews'
+import AdminQualityAlert from '@/components/admin/orders/AdminQualityAlert'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -44,6 +45,9 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
   return (
     <AdminOrderDetailRealtimeWrapper orderId={id}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        {/* تنبيه الجودة */}
+        <AdminQualityAlert review={review} />
+
         {/* الرأس */}
         <div style={{ marginBottom: '1.5rem' }}>
           <AdminOrderHeader order={order} />

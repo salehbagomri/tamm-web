@@ -2,6 +2,7 @@ import type { AdminOrderDetail } from '@/lib/data/admin/orders'
 import type { PaymentMethod } from '@/lib/types/payment'
 import type { Review } from '@/lib/data/reviews'
 import { formatPrice } from '@/lib/utils/format'
+import AdminTechnicianProof from '@/components/admin/orders/AdminTechnicianProof'
 
 const TIME_SLOT_LABELS: Record<string, string> = {
   '8AM-12PM': 'صباحاً (8 ص - 12 م)',
@@ -185,6 +186,9 @@ export default function AdminCustomerInfo({ order, paymentMethod, review }: { or
           )}
         </div>
       )}
+
+      {/* توثيق الفني وصور العمل */}
+      <AdminTechnicianProof order={order} />
 
       {/* عناصر الطلب */}
       {order.items.length > 0 && (

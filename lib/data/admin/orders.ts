@@ -40,6 +40,10 @@ export type AdminOrderRow = {
 export type AdminOrderDetail = Order & {
   technicianId: string | null
   technicianPhone: string | null
+  photoUrl: string | null
+  photoUrls: string[] | null
+  startedAt: string | null
+  completedAt: string | null
 }
 
 export type AvailableTechnician = {
@@ -47,6 +51,7 @@ export type AvailableTechnician = {
   profileId: string
   name: string
   phone: string | null
+  activeTasksCount?: number
 }
 
 // ─── خريطة تحويل الصف من DB إلى AdminOrderRow ──────────────────────────────
@@ -156,7 +161,7 @@ export async function getAdminOrderById(orderId: string): Promise<AdminOrderDeta
         service_types(id, name)
       ),
       assignments(
-        id, technician_id, technician_notes, created_at,
+        id, technician_id, technician_notes, photo_url, photo_urls, started_at, completed_at, created_at,
         technicians(profiles(id, full_name, phone))
       )
     `)
@@ -199,10 +204,14 @@ export async function getAdminOrderById(orderId: string): Promise<AdminOrderDeta
     longitude: data.longitude ?? null,
     scheduledPeriod: data.scheduled_period ?? null,
     scheduledHour: data.scheduled_hour ?? null,
-    technicianNotes: data.technician_notes ?? null,
+    technicianNotes: assignment?.technician_notes ?? null,
     technicianName: techProfile?.full_name ?? null,
     technicianId: assignment?.technician_id ?? null,
     technicianPhone: techProfile?.phone ?? null,
+    photoUrl: assignment?.photo_url ?? null,
+    photoUrls: assignment?.photo_urls ?? null,
+    startedAt: assignment?.started_at ?? null,
+    completedAt: assignment?.completed_at ?? null,
     customerProfile: customerProfile ? {
       id: customerProfile.id,
       email: customerProfile.email ?? '',
@@ -239,18 +248,34 @@ export async function getAvailableTechnicians(): Promise<AvailableTechnician[]> 
 
   const { data, error } = await supabase
     .from('technicians')
-    .select('id, profile_id, profiles(full_name, phone)')
+    .select(`
+      id,
+      profile_id,
+      profiles(full_name, phone),
+      assignments(
+        id,
+        orders(status)
+      )
+    `)
     .eq('is_active', true)
     .eq('status', 'available')
 
   if (error || !data) return []
 
-  return data.map((t: any) => ({
-    technicianId: t.id,
-    profileId: t.profile_id,
-    name: t.profiles?.full_name ?? 'فني',
-    phone: t.profiles?.phone ?? null,
-  }))
+  return data.map((t: any) => {
+    const activeAssignments = (t.assignments ?? []).filter((a: any) => {
+      const orderStatus = a.orders?.status
+      return orderStatus === 'assigned' || orderStatus === 'on_the_way' || orderStatus === 'in_progress'
+    })
+
+    return {
+      technicianId: t.id,
+      profileId: t.profile_id,
+      name: t.profiles?.full_name ?? 'فني',
+      phone: t.profiles?.phone ?? null,
+      activeTasksCount: activeAssignments.length,
+    }
+  })
 }
 
 // ─── جلب عروض الأسعار ───────────────────────────────────────────────────────

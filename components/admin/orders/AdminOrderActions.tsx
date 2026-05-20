@@ -140,12 +140,44 @@ export default function AdminOrderActions({ order, technicians }: AdminOrderActi
               <label style={labelStyle}>اختر الفني</label>
               <select value={selectedTech} onChange={(e) => setSelectedTech(e.target.value)} style={selectStyle}>
                 <option value="">— اختر فنياً —</option>
-                {technicians.map((t) => (
-                  <option key={t.technicianId} value={t.technicianId}>
-                    {t.name}{t.phone ? ` — ${t.phone}` : ''}
-                  </option>
-                ))}
+                {technicians.map((t) => {
+                  const workloadLabel = t.activeTasksCount !== undefined 
+                    ? ` (${t.activeTasksCount} مهام نشطة)` 
+                    : ''
+                  return (
+                    <option key={t.technicianId} value={t.technicianId}>
+                      {t.name}{workloadLabel}{t.phone ? ` — ${t.phone}` : ''}
+                    </option>
+                  )
+                })}
               </select>
+
+              {selectedTech && (() => {
+                const tech = technicians.find(t => t.technicianId === selectedTech)
+                const count = tech?.activeTasksCount ?? 0
+                if (count >= 3) {
+                  return (
+                    <div style={{
+                      backgroundColor: 'rgba(245, 166, 35, 0.08)',
+                      border: '1px solid rgba(245, 166, 35, 0.3)',
+                      borderRadius: '10px',
+                      padding: '0.75rem 1rem',
+                      fontSize: '0.8rem',
+                      color: 'var(--warning)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      marginTop: '0.5rem'
+                    }}>
+                      <span>⚠️</span>
+                      <span style={{ lineHeight: 1.4 }}>
+                        <strong>تحذير عبء العمل:</strong> {tech?.name} لديه {count} مهام نشطة حالياً. قد يؤدي الإسناد الجديد لتأخر المواعيد.
+                      </span>
+                    </div>
+                  )
+                }
+                return null
+              })()}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
               <div>
