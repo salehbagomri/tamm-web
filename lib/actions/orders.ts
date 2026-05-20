@@ -58,6 +58,24 @@ export async function createProductOrder(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'يجب تسجيل الدخول أولاً' }
 
+  // ─── التحقق من توفر الكمية قبل إنشاء الطلب ─────────────────────
+  const productIds = cartItems.map(item => item.id)
+  const { data: stockData, error: stockErr } = await supabase
+    .from('products')
+    .select('id, name, stock_quantity')
+    .in('id', productIds)
+
+  if (stockErr || !stockData) return { error: 'فشل التحقق من توفر المنتجات' }
+
+  for (const item of cartItems) {
+    const product = stockData.find(p => p.id === item.id)
+    if (!product) return { error: `المنتج غير موجود في النظام` }
+    if (product.stock_quantity < item.quantity) {
+      return { error: `الكمية المطلوبة من "${product.name}" غير متوفرة. المتوفر: ${product.stock_quantity} قطعة فقط` }
+    }
+  }
+  // ───────────────────────────────────────────────────────────────────
+
   const totalAmount = cartItems.reduce((sum, item) => {
     if (item.isPriceOnRequest) return sum
     const base = (item.price ?? 0) + (item.includeInstallation ? item.installationPrice : 0)
@@ -105,6 +123,44 @@ export async function createProductOrder(
     console.error('[order_items insert error]', JSON.stringify(itemsErr, null, 2))
     return { error: `حدث خطأ أثناء حفظ المنتجات: ${itemsErr.message}` }
   }
+
+  // ─── خصم الكمية من المخزون + تنبيهات ────────────────────────────
+  try {
+    for (const item of cartItems) {
+      const product = stockData.find(p => p.id === item.id)!
+      const newQty = product.stock_quantity - item.quantity
+
+      const updateData: Record<string, unknown> = { stock_quantity: newQty }
+      // إخفاء تلقائي إذا وصلت الكمية للصفر
+      const { data: prodFull } = await supabase.from('products').select('auto_hide_when_out, low_stock_threshold, name').eq('id', item.id).single()
+      if (newQty <= 0 && prodFull?.auto_hide_when_out) {
+        updateData.is_available = false
+      }
+
+      await supabase.from('products').update(updateData).eq('id', item.id)
+
+      // إشعار المدير عند انخفاض المخزون
+      const threshold = prodFull?.low_stock_threshold ?? 3
+      if (newQty <= threshold && newQty > 0) {
+        await notifyManagers({
+          title: '⚠️ تنبيه مخزون منخفض',
+          body: `المنتج "${prodFull?.name}" وصل لـ ${newQty} قطعة فقط!`,
+          type: 'low_stock',
+          orderId: order.id,
+        })
+      } else if (newQty <= 0) {
+        await notifyManagers({
+          title: '🔴 نفاد مخزون',
+          body: `المنتج "${prodFull?.name}" نفد بالكامل وتم إخفاؤه تلقائياً من المتجر.`,
+          type: 'out_of_stock',
+          orderId: order.id,
+        })
+      }
+    }
+  } catch (err) {
+    console.error('[stock deduction error]', err)
+  }
+  // ───────────────────────────────────────────────────────────────────
 
   // إرسال إشعار للمديرين بطلب جديد
   try {
