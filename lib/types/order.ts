@@ -69,4 +69,5 @@ export type Order = {
   latitude: number | null
   longitude: number | null
   receiptUrl: string | null
+  contactPhone: string | null
 }

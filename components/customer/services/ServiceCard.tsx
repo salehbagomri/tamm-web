@@ -76,7 +76,7 @@ export default function ServiceCard({ service }: { service: ServiceType }) {
       }}>
         <div>
           <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-            {service.isQuoteBased ? 'حسب الموقع' : formatPrice(service.basePrice)}
+            {service.isQuoteBased ? 'يُحدد حسب الموقع' : formatPrice(service.basePrice)}
           </span>
         </div>
         <Link href={`/services/${service.id}`} style={{

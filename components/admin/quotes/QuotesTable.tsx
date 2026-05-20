@@ -68,7 +68,9 @@ export default function QuotesTable({ orders, totalCount }: { orders: AdminOrder
                   <td style={{ padding: '0.875rem 1rem', fontSize: '0.8rem', color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>
                     {o.createdAt ? new Date(o.createdAt).toLocaleDateString('ar-SA') : '—'}
                   </td>
-                  <td style={{ padding: '0.875rem 1rem', fontSize: '0.8rem', color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>—</td>
+                  <td style={{ padding: '0.875rem 1rem', fontSize: '0.8rem', color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>
+                    {o.quoteRespondedAt ? new Date(o.quoteRespondedAt).toLocaleDateString('ar-SA') : '—'}
+                  </td>
                   <td style={{ padding: '0.875rem 1rem' }}>
                     <Link href={`/admin/orders/${o.id}`} style={{ padding: '0.375rem 0.875rem', borderRadius: '8px', fontSize: '0.8125rem', fontWeight: 600, backgroundColor: 'rgba(21,118,212,0.1)', color: 'var(--blue-light)', textDecoration: 'none', display: 'inline-block', whiteSpace: 'nowrap' }}>
                       إدارة →

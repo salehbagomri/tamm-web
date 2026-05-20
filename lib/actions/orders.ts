@@ -74,6 +74,7 @@ export async function createProductOrder(
       status: 'pending',
       total_amount: totalAmount,
       address: checkoutData.address,
+      contact_phone: checkoutData.phone || null,
       preferred_date: checkoutData.preferredDate || null,
       preferred_time_slot: checkoutData.preferredTimeSlot || null,
       notes: checkoutData.notes || null,
@@ -131,6 +132,7 @@ export async function createServiceOrder(
       status: 'pending',
       total_amount: isQuoteBased ? 0 : basePrice,
       address: bookingData.address,
+      contact_phone: bookingData.phone || null,
       preferred_date: bookingData.preferredDate || null,
       preferred_time_slot: bookingData.preferredTimeSlot || null,
       notes: bookingData.notes || null,
@@ -151,6 +153,7 @@ export async function createServiceOrder(
     include_installation: false,
   })
 
+  revalidatePath('/orders')
   return { orderNumber: order.order_number as string }
 }
 
@@ -171,6 +174,7 @@ export async function createQuoteRequest(quoteData: QuoteData): Promise<ActionRe
       status: 'pending',
       total_amount: 0,
       address: quoteData.address,
+      contact_phone: quoteData.phone || null,
       preferred_date: quoteData.preferredDate || null,
       notes: `الفئة: ${quoteData.serviceCategory}\n${quoteData.description}`,
       quote_status: 'pending',
@@ -206,6 +210,8 @@ export async function respondToQuote(
   const updates: any = {
     quote_status: response,
     quote_responded_at: new Date().toISOString(),
+    // عند القبول يصبح الطلب مؤكداً، وعند الرفض يُلغى
+    status: response === 'accepted' ? 'confirmed' : 'cancelled',
   }
   if (response === 'rejected' && rejectionReason) {
     updates.rejection_reason = rejectionReason

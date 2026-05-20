@@ -11,7 +11,7 @@ const CATEGORIES: { value: ServiceCategory; label: string }[] = [
   { value: 'ac_wash',         label: 'غسيل تكييف' },
   { value: 'ac_maintenance',  label: 'صيانة تكييف' },
   { value: 'solar_install',   label: 'تركيب طاقة شمسية' },
-  { value: 'solar_maintenance','label': 'صيانة طاقة شمسية' },
+  { value: 'solar_maintenance', label: 'صيانة طاقة شمسية' },
   { value: 'consultation',    label: 'استشارة' },
 ]
 

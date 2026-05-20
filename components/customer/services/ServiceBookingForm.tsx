@@ -92,7 +92,7 @@ export default function ServiceBookingForm({ service, initialAddress, initialPho
         <div style={{ flex: 1 }}>
           <p style={{ fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 0.2rem' }}>{service.name}</p>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-second)', margin: 0 }}>
-            {service.isQuoteBased ? 'سيتم تحديد السعر حسب الموقع' : formatPrice(service.basePrice)}
+            {service.isQuoteBased ? 'يُحدد حسب الموقع' : formatPrice(service.basePrice)}
           </p>
         </div>
       </div>

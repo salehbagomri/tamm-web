@@ -33,6 +33,8 @@ export type AdminOrderRow = {
   latitude: number | null
   longitude: number | null
   receiptUrl: string | null
+  contactPhone: string | null
+  quoteRespondedAt: string | null
 }
 
 export type AdminOrderDetail = Order & {
@@ -76,6 +78,8 @@ function mapOrderRow(row: any): AdminOrderRow {
     latitude: row.latitude ?? null,
     longitude: row.longitude ?? null,
     receiptUrl: row.receipt_url ?? null,
+    contactPhone: row.contact_phone ?? null,
+    quoteRespondedAt: row.quote_responded_at ?? null,
   }
 }
 
@@ -95,7 +99,7 @@ export async function getAdminOrders(filters: AdminOrderFilters = {}): Promise<{
     .select(
       `id, order_number, order_type, status, total_amount, address,
        preferred_date, preferred_time_slot, notes, created_at,
-       quote_status, quote_price,
+       quote_status, quote_price, contact_phone,
        profiles!orders_customer_id_fkey(full_name, phone),
        assignments(technicians(profiles(full_name)))`,
       { count: 'exact' }
@@ -270,7 +274,7 @@ export async function getAdminQuotes(filters: AdminQuoteFilters = {}): Promise<{
     .select(
       `id, order_number, order_type, status, total_amount, address,
        preferred_date, preferred_time_slot, notes, created_at,
-       quote_status, quote_price,
+       quote_status, quote_price, quote_responded_at, contact_phone,
        profiles!orders_customer_id_fkey(full_name, phone),
        assignments(technicians(profiles(full_name)))`,
       { count: 'exact' }
