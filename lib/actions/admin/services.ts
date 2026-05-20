@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createServerClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import type { ServiceCategory } from '@/lib/types/service'
 
 function revalidateServices(id?: string) {
@@ -24,7 +24,7 @@ export type ServiceFormData = {
 }
 
 export async function createService(data: ServiceFormData): Promise<{ id?: string; error?: string }> {
-  const supabase = await createServerClient()
+  const supabase = createAdminClient()
 
   const { data: row, error } = await supabase.from('service_types').insert({
     name: data.name.trim(),
@@ -44,7 +44,7 @@ export async function createService(data: ServiceFormData): Promise<{ id?: strin
 }
 
 export async function updateService(id: string, data: ServiceFormData): Promise<{ error?: string }> {
-  const supabase = await createServerClient()
+  const supabase = createAdminClient()
 
   const { error } = await supabase.from('service_types').update({
     name: data.name.trim(),
@@ -56,7 +56,6 @@ export async function updateService(id: string, data: ServiceFormData): Promise<
     includes: data.includes ?? [],
     is_active: data.isActive,
     icon_name: data.iconName ?? null,
-    updated_at: new Date().toISOString(),
   }).eq('id', id)
 
   if (error) { console.error('[updateService]', error); return { error: 'فشل تحديث الخدمة' } }
@@ -65,7 +64,7 @@ export async function updateService(id: string, data: ServiceFormData): Promise<
 }
 
 export async function deleteService(id: string): Promise<{ error?: string }> {
-  const supabase = await createServerClient()
+  const supabase = createAdminClient()
 
   // تحقق من ارتباط الخدمة بطلبات
   const { count } = await supabase
@@ -83,10 +82,10 @@ export async function deleteService(id: string): Promise<{ error?: string }> {
 }
 
 export async function toggleServiceActive(id: string, isActive: boolean): Promise<{ error?: string }> {
-  const supabase = await createServerClient()
+  const supabase = createAdminClient()
   const { error } = await supabase
     .from('service_types')
-    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .update({ is_active: isActive })
     .eq('id', id)
 
   if (error) return { error: 'فشل تحديث حالة الخدمة' }
