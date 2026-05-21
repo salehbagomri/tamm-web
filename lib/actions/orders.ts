@@ -170,14 +170,16 @@ export async function createProductOrder(
         await notifyManagers({
           title: '⚠️ تنبيه مخزون منخفض',
           body: `المنتج "${prodFull?.name}" وصل لـ ${newQty} قطعة فقط!`,
-          type: 'low_stock',
+          type: 'order_update',
+          notificationType: 'low_stock',
           orderId: order.id,
         })
       } else if (newQty <= 0) {
         await notifyManagers({
           title: '🔴 نفاد مخزون',
           body: `المنتج "${prodFull?.name}" نفد بالكامل وتم إخفاؤه تلقائياً من المتجر.`,
-          type: 'out_of_stock',
+          type: 'order_update',
+          notificationType: 'out_of_stock',
           orderId: order.id,
         })
       }

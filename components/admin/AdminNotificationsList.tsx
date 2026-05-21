@@ -68,7 +68,10 @@ export default function AdminNotificationsList({ userId, initialNotifications }:
     setLoading(false)
   }
 
-  const getIcon = (type: string) => {
+  const getIcon = (type: string, notificationType?: string | null) => {
+    // أيقونات المخزون (تعتمد على notificationType)
+    if (notificationType === 'low_stock') return '⚠️'
+    if (notificationType === 'out_of_stock') return '🔴'
     switch (type) {
       case 'new_order':
       case 'order_update':
@@ -79,10 +82,6 @@ export default function AdminNotificationsList({ userId, initialNotifications }:
         return '📄'
       case 'payment_receipt':
         return '💳'
-      case 'low_stock':
-        return '⚠️'
-      case 'out_of_stock':
-        return '🔴'
       default:
         return '🔔'
     }
@@ -243,7 +242,7 @@ export default function AdminNotificationsList({ userId, initialNotifications }:
                 flexShrink: 0,
                 border: '1px solid var(--border)',
               }}>
-                {getIcon(notif.type)}
+                {getIcon(notif.type, notif.notificationType)}
               </div>
 
               {/* المحتوى */}
