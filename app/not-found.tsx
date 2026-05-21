@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import Image from 'next/image'
+import TammLogo from '@/components/ui/TammLogo'
 
 export default function NotFound() {
   return (
@@ -24,13 +24,7 @@ export default function NotFound() {
         boxShadow: '0 8px 30px rgba(0, 0, 0, 0.3)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
-          <Image
-            src="/logo-tamm.png"
-            alt="شعار منصة تمّ"
-            width={60}
-            height={60}
-            style={{ borderRadius: '12px' }}
-          />
+          <TammLogo size={64} />
         </div>
         <h1 style={{ fontSize: '4rem', fontWeight: 900, color: '#1576D4', margin: '0 0 1rem' }}>404</h1>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', color: '#E8F0F8' }}>الصفحة غير موجودة</h2>

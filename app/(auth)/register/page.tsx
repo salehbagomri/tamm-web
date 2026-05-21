@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { signUpWithEmail } from '@/lib/actions/auth'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import TammLogo from '@/components/ui/TammLogo'
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
@@ -107,19 +108,11 @@ export default function RegisterPage() {
         {/* الشعار */}
         <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
           <div style={{
-            width: '56px', height: '56px',
-            background: 'linear-gradient(135deg, var(--blue-primary), var(--blue-mid))',
-            borderRadius: '16px',
             display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            color: '#fff',
             marginBottom: '1rem',
-            boxShadow: '0 8px 24px rgba(21,118,212,0.3)',
+            filter: 'drop-shadow(0 8px 24px rgba(34,201,138,0.25))',
           }}>
-            تمّ
+            <TammLogo size={64} />
           </div>
           <h1 style={{ fontSize: '1.375rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
             إنشاء حساب جديد

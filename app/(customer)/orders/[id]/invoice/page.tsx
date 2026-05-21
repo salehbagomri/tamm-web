@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
+import TammLogo from '@/components/ui/TammLogo'
 import { createServerClient, createAdminClient } from '@/lib/supabase/server'
 import { getInvoiceByOrderId, createInvoiceForOrder } from '@/lib/actions/admin/invoices'
 import { getAdminOrderById } from '@/lib/data/admin/orders'
@@ -232,13 +232,7 @@ export default async function InvoicePage({ params }: Props) {
           {/* لوجو وبيانات المنصة */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <Image
-                src="/logo-tamm.png"
-                alt="شعار منصة تمّ"
-                width={42}
-                height={42}
-                style={{ borderRadius: '10px' }}
-              />
+              <TammLogo size={48} />
               <h1 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
                 منصة تمّ
               </h1>

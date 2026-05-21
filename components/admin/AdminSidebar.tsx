@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import TammLogo from '@/components/ui/TammLogo'
 
 type NavItem = { label: string; path: string; icon: React.ReactNode; countKey?: string }
 
@@ -194,12 +195,7 @@ export default function AdminSidebar({
         borderBottom: '1px solid var(--border)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-          <div style={{
-            width: '36px', height: '36px', borderRadius: '10px',
-            background: 'linear-gradient(135deg, var(--blue-primary), var(--blue-mid))',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '1.1rem',
-          }}>⚙</div>
+          <TammLogo size={36} />
           <div>
             <p style={{ margin: 0, fontWeight: 800, fontSize: '1rem', color: 'var(--blue-light)' }}>
               تمّ

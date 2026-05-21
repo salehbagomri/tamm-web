@@ -8,6 +8,7 @@ import type { UserProfile } from '@/lib/types/user'
 import { signOut } from '@/lib/actions/auth'
 import { useCart } from '@/lib/store/cart-context'
 import { createClient } from '@/lib/supabase/client'
+import TammLogo from '@/components/ui/TammLogo'
 
 const NAV_LINKS = [
   { href: '/home', label: 'الرئيسية' },
@@ -110,12 +111,18 @@ export default function CustomerNavbar({ user }: CustomerNavbarProps) {
         }}>
           {/* الشعار */}
           <Link href="/home" style={{
-            fontWeight: 700, fontSize: '1.375rem',
-            background: 'linear-gradient(135deg, var(--blue-light), var(--blue-sky))',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+            display: 'flex', alignItems: 'center', gap: '0.5rem',
             textDecoration: 'none', flexShrink: 0,
           }}>
-            تمّ
+            <TammLogo size={36} />
+            <span style={{
+              fontWeight: 800, fontSize: '1.375rem',
+              background: 'linear-gradient(135deg, var(--blue-light), var(--blue-sky))',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              letterSpacing: '-0.02em',
+            }}>
+              تمّ
+            </span>
           </Link>
 
           {/* روابط الديسكتوب */}
