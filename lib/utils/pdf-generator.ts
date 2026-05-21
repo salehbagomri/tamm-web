@@ -73,11 +73,21 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
 
   y += 18
 
+  // كل سطر: القيمة على اليسار + التسمية بمحاذاة يمين على بُعد قصير
   doc.setFontSize(9)
-  doc.setTextColor(71, 85, 105)
-  doc.text(`رقم الفاتورة: ${data.invoiceNumber}`, marginL, y, { align: 'left' })
-  doc.text(`تاريخ الإصدار: ${data.issuedAt}`, marginL, y + 5, { align: 'left' })
-  doc.text(`رقم الطلب: #${data.orderNumber}`, marginL, y + 10, { align: 'left' })
+  const metaRight = marginL + 50
+  const metaRows: [string, string][] = [
+    ['رقم الفاتورة', data.invoiceNumber],
+    ['تاريخ الإصدار', data.issuedAt],
+    ['رقم الطلب', `#${data.orderNumber}`],
+  ]
+  metaRows.forEach(([label, value], idx) => {
+    const lineY = y + idx * 5
+    doc.setTextColor(71, 85, 105)
+    doc.text(value, marginL, lineY, { align: 'left' })
+    doc.setTextColor(15, 23, 42)
+    doc.text(label, metaRight, lineY, { align: 'right' })
+  })
 
   y += 18
 
@@ -210,21 +220,21 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
   }
 
   doc.setTextColor(71, 85, 105)
-  doc.text('إجمالي المنتجات:', summaryEndX, y, { align: 'right' })
+  doc.text('إجمالي المنتجات', summaryEndX, y, { align: 'right' })
   doc.setTextColor(15, 23, 42)
   drawPrice(data.subtotal.toFixed(2), priceAnchor, y)
   y += 6.5
 
   if (data.installationFee > 0) {
     doc.setTextColor(71, 85, 105)
-    doc.text('رسوم التركيب والتثبيت:', summaryEndX, y, { align: 'right' })
+    doc.text('رسوم التركيب والتثبيت', summaryEndX, y, { align: 'right' })
     doc.setTextColor(15, 23, 42)
     drawPrice(data.installationFee.toFixed(2), priceAnchor, y)
     y += 6.5
   }
 
   doc.setTextColor(71, 85, 105)
-  doc.text('رسوم الشحن والتوصيل:', summaryEndX, y, { align: 'right' })
+  doc.text('رسوم الشحن والتوصيل', summaryEndX, y, { align: 'right' })
   if (data.deliveryFee > 0) {
     doc.setTextColor(5, 150, 105)
     drawPrice(data.deliveryFee.toFixed(2), priceAnchor, y)
@@ -242,7 +252,7 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
 
   doc.setFontSize(12)
   doc.setTextColor(21, 118, 212)
-  doc.text('المجموع النهائي:', summaryEndX, y, { align: 'right' })
+  doc.text('المجموع النهائي', summaryEndX, y, { align: 'right' })
 
   doc.setFontSize(14)
   doc.setTextColor(15, 23, 42)
