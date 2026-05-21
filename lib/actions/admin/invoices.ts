@@ -56,33 +56,25 @@ export async function getInvoiceByOrderId(orderId: string): Promise<InvoiceData 
 }
 
 /**
- * إنشاء فاتورة لطلب مكتمل — توليد PDF + رفع لـ Storage + حفظ في DB
+ * إنشاء فاتورة لطلب مكتمل (رتبة المدير العام/النظام) — توليد PDF + رفع لـ Storage + حفظ في DB
  */
-export async function createInvoiceForOrder(orderId: string): Promise<{ invoice?: InvoiceData; error?: string }> {
+export async function createInvoiceForOrderAdmin(orderId: string): Promise<{ invoice?: InvoiceData; error?: string }> {
   try {
-    const supabase = await createServerClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'غير مصرح للوصول' }
+    const adminClient = createAdminClient()
 
-    // تحقق من صلاحية المدير
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+    // التحقق من وجود فاتورة سابقة للطلب باستخدام adminClient لتجاوز RLS
+    const { data: existingData, error: existingErr } = await adminClient
+      .from('invoices')
+      .select('*')
+      .eq('order_id', orderId)
+      .maybeSingle()
 
-    if (!profile || profile.role !== 'manager') {
-      return { error: 'عذراً، هذه العملية متاحة للمدير فقط' }
+    if (existingData) {
+      return { invoice: mapInvoice(existingData) }
     }
 
-    // التحقق من وجود فاتورة سابقة للطلب
-    const existing = await getInvoiceByOrderId(orderId)
-    if (existing) {
-      return { invoice: existing }
-    }
-
-    // جلب بيانات الطلب وتفاصيله
-    const order = await getAdminOrderById(orderId)
+    // جلب بيانات الطلب وتفاصيله باستخدام adminClient
+    const order = await getAdminOrderById(orderId, adminClient)
     if (!order) {
       return { error: 'الطلب غير موجود' }
     }
@@ -113,19 +105,29 @@ export async function createInvoiceForOrder(orderId: string): Promise<{ invoice?
 
     // توليد الرقم التسلسلي للفاتورة: INV-YYYY-NNNN
     const year = new Date().getFullYear()
-    const adminClient = createAdminClient()
 
-    // حساب عدد فواتير السنة الحالية
-    const { count, error: countErr } = await adminClient
+    // البحث عن أعلى رقم فاتورة للسنة الحالية لتجنب التكرار
+    const { data: latestInvoices, error: latestErr } = await adminClient
       .from('invoices')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', `${year}-01-01T00:00:00Z`)
+      .select('invoice_number')
+      .like('invoice_number', `INV-${year}-%`)
+      .order('invoice_number', { ascending: false })
+      .limit(1)
 
-    if (countErr) {
-      console.error('[createInvoiceForOrder] count error:', countErr.message)
+    if (latestErr) {
+      console.error('[createInvoiceForOrderAdmin] latest invoice error:', latestErr.message)
     }
 
-    const serialNum = String((count ?? 0) + 1).padStart(4, '0')
+    let nextSerial = 1
+    if (latestInvoices && latestInvoices.length > 0) {
+      const latestNum = latestInvoices[0].invoice_number
+      const match = latestNum.match(/INV-\d{4}-(\d+)/)
+      if (match) {
+        nextSerial = parseInt(match[1], 10) + 1
+      }
+    }
+
+    const serialNum = String(nextSerial).padStart(4, '0')
     const invoiceNumber = `INV-${year}-${serialNum}`
 
     // تاريخ الإصدار بالتنسيق المطلوب
@@ -167,14 +169,14 @@ export async function createInvoiceForOrder(orderId: string): Promise<{ invoice?
         })
 
       if (uploadErr) {
-        console.error('[createInvoiceForOrder] upload error:', uploadErr.message)
+        console.error('[createInvoiceForOrderAdmin] upload error:', uploadErr.message)
       } else {
         const { data: urlData } = adminClient.storage.from('receipts').getPublicUrl(fileName)
         pdfUrl = urlData.publicUrl
         console.log('[Invoice PDF] ✅ uploaded:', pdfUrl)
       }
     } catch (pdfErr) {
-      console.error('[createInvoiceForOrder] PDF generation error:', pdfErr)
+      console.error('[createInvoiceForOrderAdmin] PDF generation error:', pdfErr)
       // نستمر حتى لو فشل توليد الـ PDF — الفاتورة التفاعلية تبقى متاحة
     }
 
@@ -195,7 +197,7 @@ export async function createInvoiceForOrder(orderId: string): Promise<{ invoice?
       .single()
 
     if (insertErr) {
-      console.error('[createInvoiceForOrder] insert error:', insertErr.message)
+      console.error('[createInvoiceForOrderAdmin] insert error:', insertErr.message)
       return { error: 'فشل إدراج الفاتورة في قاعدة البيانات' }
     }
 
@@ -204,6 +206,33 @@ export async function createInvoiceForOrder(orderId: string): Promise<{ invoice?
     revalidatePath(`/orders/${orderId}`)
 
     return { invoice: mapInvoice(newInvoice) }
+  } catch (err: any) {
+    console.error('[createInvoiceForOrderAdmin] Server error:', err)
+    return { error: 'حدث خطأ غير متوقع أثناء توليد الفاتورة' }
+  }
+}
+
+/**
+ * إنشاء فاتورة لطلب مكتمل — للمدراء مع التحقق من الصلاحيات
+ */
+export async function createInvoiceForOrder(orderId: string): Promise<{ invoice?: InvoiceData; error?: string }> {
+  try {
+    const supabase = await createServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'غير مصرح للوصول' }
+
+    // تحقق من صلاحية المدير
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || profile.role !== 'manager') {
+      return { error: 'عذراً، هذه العملية متاحة للمدير فقط' }
+    }
+
+    return createInvoiceForOrderAdmin(orderId)
   } catch (err: any) {
     console.error('[createInvoiceForOrder] Server error:', err)
     return { error: 'حدث خطأ غير متوقع أثناء توليد الفاتورة' }

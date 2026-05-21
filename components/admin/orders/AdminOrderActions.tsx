@@ -176,7 +176,7 @@ export default function AdminOrderActions({ order, technicians, invoice }: Admin
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {/* زر عرض الفاتورة */}
                 <a
-                  href={`/orders/${order.id}/invoice`}
+                  href={invoice.pdfUrl && (invoice.pdfUrl.startsWith('http://') || invoice.pdfUrl.startsWith('https://')) ? invoice.pdfUrl : `/orders/${order.id}/invoice`}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{

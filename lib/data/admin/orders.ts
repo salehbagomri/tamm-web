@@ -148,8 +148,8 @@ export async function getAdminOrders(filters: AdminOrderFilters = {}): Promise<{
 
 // ─── جلب طلب واحد كامل ──────────────────────────────────────────────────────
 
-export async function getAdminOrderById(orderId: string): Promise<AdminOrderDetail | null> {
-  const supabase = await createServerClient()
+export async function getAdminOrderById(orderId: string, supabaseClient?: any): Promise<AdminOrderDetail | null> {
+  const supabase = supabaseClient || await createServerClient()
 
   const { data, error } = await supabase
     .from('orders')

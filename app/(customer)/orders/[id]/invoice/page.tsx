@@ -93,68 +93,10 @@ export default async function InvoicePage({ params }: Props) {
 
   // إذا كان الطلب مكتملاً ولم تكن له فاتورة، نقوم بإنشائها فوراً لتلافي أي فجوة في الطلبات السابقة
   if (!invoice && order.status === 'completed') {
-    // نستخدم حساب الأدمن لتوليد الفاتورة تلقائياً بدون قيود صلاحية المدير إن كان عميلاً يستعرض طلبه المكتمل
-    const adminClient = createAdminClient()
-    
-    // حساب المجموع الفرعي ورسوم التركيب
-    let subtotal = 0
-    let installationFee = 0
-
-    order.items.forEach(item => {
-      const quantity = item.quantity ?? 1
-      const unitPrice = item.unitPrice ?? 0
-      const itemTotal = item.totalPrice ?? (unitPrice * quantity)
-      
-      const baseTotal = unitPrice * quantity
-      const installPart = Math.max(0, itemTotal - baseTotal)
-
-      subtotal += baseTotal
-      installationFee += installPart
-    })
-
-    if (subtotal === 0 && order.totalAmount > 0) {
-      subtotal = order.totalAmount
-      installationFee = 0
-    }
-
-    const year = new Date().getFullYear()
-    const { count } = await adminClient
-      .from('invoices')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', `${year}-01-01T00:00:00Z`)
-
-    const serialNum = String((count ?? 0) + 1).padStart(4, '0')
-    const invoiceNumber = `INV-${year}-${serialNum}`
-
-    const { data: newInvoice } = await adminClient
-      .from('invoices')
-      .insert({
-        invoice_number: invoiceNumber,
-        order_id: orderId,
-        customer_id: order.customerId,
-        subtotal,
-        installation_fee: installationFee,
-        total_amount: order.totalAmount,
-        payment_type: order.paymentType,
-        pdf_url: `/orders/${orderId}/invoice`
-      })
-      .select('*')
-      .single()
-
-    if (newInvoice) {
-      invoice = {
-        id: newInvoice.id,
-        invoiceNumber: newInvoice.invoice_number,
-        orderId: newInvoice.order_id,
-        customerId: newInvoice.customer_id,
-        subtotal: Number(newInvoice.subtotal),
-        installationFee: Number(newInvoice.installation_fee),
-        totalAmount: Number(newInvoice.total_amount),
-        paymentType: newInvoice.payment_type,
-        pdfUrl: newInvoice.pdf_url ?? null,
-        issuedAt: newInvoice.issued_at,
-        createdAt: newInvoice.created_at
-      }
+    const { createInvoiceForOrderAdmin } = await import('@/lib/actions/admin/invoices')
+    const result = await createInvoiceForOrderAdmin(orderId)
+    if (result.invoice) {
+      invoice = result.invoice
     }
   }
 
