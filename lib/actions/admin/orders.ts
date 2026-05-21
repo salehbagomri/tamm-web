@@ -42,6 +42,16 @@ export async function updateOrderStatus(
     return { error: 'فشل تحديث حالة الطلب' }
   }
 
+  // ─── توليد فاتورة تلقائياً عند إتمام الطلب ───────────────────────────
+  if (status === 'completed') {
+    try {
+      const { createInvoiceForOrder } = await import('@/lib/actions/admin/invoices')
+      await createInvoiceForOrder(orderId)
+    } catch (err) {
+      console.error('[invoice generation on completion failed]', err)
+    }
+  }
+
   // ─── إرجاع الكمية عند إلغاء الطلب ─────────────────────────────
   if (status === 'cancelled') {
     try {

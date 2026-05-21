@@ -36,6 +36,10 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
 
   if (!order) notFound()
 
+  // جلب الفاتورة الخاصة بالطلب
+  const { getInvoiceByOrderId } = await import('@/lib/actions/admin/invoices')
+  const invoice = await getInvoiceByOrderId(id)
+
   const review = await getReviewByOrderId(supabase, id)
 
   const paymentMethod = order.paymentMethodId
@@ -71,7 +75,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
             {order.orderType === 'quote_request' && (
               <QuoteManagement order={order} />
             )}
-            <AdminOrderActions order={order} technicians={technicians} />
+            <AdminOrderActions order={order} technicians={technicians} invoice={invoice} />
           </div>
         </div>
 

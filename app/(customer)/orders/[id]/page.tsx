@@ -52,6 +52,51 @@ export default async function OrderDetailPage({ params }: Props) {
           {/* 1. Order number + status badge */}
           <OrderDetailHeader order={order} />
 
+          {/* 📄 كرت الفاتورة الرسمية للطلبات المكتملة */}
+          {order.status === 'completed' && (
+            <div style={{
+              backgroundColor: 'var(--bg-surface)',
+              border: '1px solid var(--border)',
+              borderRadius: '16px',
+              padding: '1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '1rem',
+              flexWrap: 'wrap',
+              background: 'linear-gradient(135deg, rgba(21, 118, 212, 0.05), rgba(8, 14, 24, 0.2))',
+              borderRight: '4px solid var(--blue-primary)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
+                <span style={{ fontSize: '2rem' }}>📄</span>
+                <div>
+                  <h3 style={{ margin: '0 0 0.25rem', fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    فاتورة المبيعات الرسمية
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-second)', lineHeight: 1.4 }}>
+                    تم إصدار فاتورة طلبك وتوثيق العملية بنجاح. يمكنك الآن معاينتها وطباعتها أو حفظها بصيغة PDF.
+                  </p>
+                </div>
+              </div>
+              <Link
+                href={`/orders/${id}/invoice`}
+                style={{
+                  padding: '0.625rem 1.25rem',
+                  backgroundColor: 'var(--blue-primary)',
+                  color: '#fff',
+                  borderRadius: '10px',
+                  textDecoration: 'none',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  transition: 'background 0.2s',
+                  boxShadow: '0 4px 12px rgba(21, 118, 212, 0.2)',
+                }}
+              >
+                عرض وتحميل الفاتورة
+              </Link>
+            </div>
+          )}
+
           {/* 2. Timeline (not for quote_request) */}
           {order.orderType !== 'quote_request' && (
             <OrderTimeline status={order.status} />
