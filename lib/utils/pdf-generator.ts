@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf'
-import alexandriaFontData from './alexandria-font.json'
+import readexFontData from './readex-font.json'
 import logoData from './logo-tamm-base64.json'
 import { reverseArabicLine } from './arabic-helper'
 
@@ -31,10 +31,10 @@ interface InvoicePDFData {
 export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
-  // تسجيل خط Alexandria العربي المعتمد للهوية
-  doc.addFileToVFS('Alexandria-Regular.ttf', alexandriaFontData.data)
-  doc.addFont('Alexandria-Regular.ttf', 'Alexandria', 'normal')
-  doc.setFont('Alexandria')
+  // تسجيل خط Readex Pro العربي المعتمد للهوية
+  doc.addFileToVFS('Readex-Pro.ttf', readexFontData.data)
+  doc.addFont('Readex-Pro.ttf', 'ReadexPro', 'normal')
+  doc.setFont('ReadexPro')
 
   const pageW = 210
   const marginR = 15
