@@ -4,6 +4,7 @@ import { createServerClient, createAdminClient } from '@/lib/supabase/server'
 import { getInvoiceByOrderId, createInvoiceForOrder } from '@/lib/actions/admin/invoices'
 import { getAdminOrderById } from '@/lib/data/admin/orders'
 import { getOrderById } from '@/lib/data/orders'
+import PrintInvoiceButton from '@/components/customer/orders/PrintInvoiceButton'
 import type { Metadata } from 'next'
 
 interface Props {
@@ -247,30 +248,7 @@ export default async function InvoicePage({ params }: Props) {
           العودة للطلب #{order.orderNumber}
         </Link>
 
-        <button 
-          onClick={() => {
-            if (typeof window !== 'undefined') {
-              window.print()
-            }
-          }}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.75rem 1.5rem',
-            backgroundColor: 'var(--blue-primary)',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '12px',
-            cursor: 'pointer',
-            fontSize: '0.95rem',
-            fontWeight: 700,
-            boxShadow: '0 4px 12px rgba(21, 118, 212, 0.3)',
-          }}
-        >
-          <span>🖨️</span>
-          طباعة الفاتورة / تحميل PDF
-        </button>
+        <PrintInvoiceButton />
       </div>
 
       {/* ورقة الفاتورة الاحترافية - مجهزة للطباعة */}
