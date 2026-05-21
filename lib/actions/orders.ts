@@ -51,9 +51,9 @@ function generateOrderNumber(): string {
 export async function validateCartStock(
   cartItems: { id: string; quantity: number; name: string }[]
 ): Promise<{ error?: string }> {
-  const supabase = await createServerClient()
+  const adminClient = createAdminClient()
   const productIds = cartItems.map(item => item.id)
-  const { data: stockData, error: stockErr } = await supabase
+  const { data: stockData, error: stockErr } = await adminClient
     .from('products')
     .select('id, name, stock_quantity')
     .in('id', productIds)
@@ -83,8 +83,9 @@ export async function createProductOrder(
   if (!user) return { error: 'يجب تسجيل الدخول أولاً' }
 
   // ─── التحقق من توفر الكمية قبل إنشاء الطلب ─────────────────────
+  const adminClient = createAdminClient()
   const productIds = cartItems.map(item => item.id)
-  const { data: stockData, error: stockErr } = await supabase
+  const { data: stockData, error: stockErr } = await adminClient
     .from('products')
     .select('id, name, stock_quantity')
     .in('id', productIds)
@@ -150,7 +151,6 @@ export async function createProductOrder(
 
   // ─── خصم الكمية من المخزون + تنبيهات ────────────────────────────
   try {
-    const adminClient = createAdminClient()
     for (const item of cartItems) {
       const product = stockData.find(p => p.id === item.id)!
       const newQty = product.stock_quantity - item.quantity

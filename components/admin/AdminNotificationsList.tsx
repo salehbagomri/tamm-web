@@ -79,6 +79,10 @@ export default function AdminNotificationsList({ userId, initialNotifications }:
         return '📄'
       case 'payment_receipt':
         return '💳'
+      case 'low_stock':
+        return '⚠️'
+      case 'out_of_stock':
+        return '🔴'
       default:
         return '🔔'
     }
