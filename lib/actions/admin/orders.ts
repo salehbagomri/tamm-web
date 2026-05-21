@@ -54,7 +54,10 @@ export async function updateOrderStatus(
     // ─── حساب عمولة الفني تلقائياً ─────────────────────────────────
     try {
       const { calculateCommissionForOrder } = await import('@/lib/actions/admin/commissions')
-      await calculateCommissionForOrder(orderId)
+      const result = await calculateCommissionForOrder(orderId)
+      if (result.error) {
+        console.error('[commission calculation result]', result.error)
+      }
     } catch (err) {
       console.error('[commission calculation on completion failed]', err)
     }

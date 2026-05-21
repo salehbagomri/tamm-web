@@ -1,31 +1,62 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient, createAdminClient } from '@/lib/supabase/server'
 import type { TaskType, CommissionType } from '@/lib/types/commission'
 
 // ─── حساب العمولة تلقائياً عند إتمام طلب ──────────────────────────────────────
 
 export async function calculateCommissionForOrder(orderId: string): Promise<{ error?: string }> {
   try {
-    const supabase = await createServerClient()
+    // نستخدم Admin Client لتجاوز قيود RLS
+    const supabase = createAdminClient()
 
-    // جلب بيانات الطلب والتعيين
-    const { data: order } = await supabase
+    console.log('[Commission] بدء حساب العمولة للطلب:', orderId)
+
+    // جلب بيانات الطلب
+    const { data: order, error: orderErr } = await supabase
       .from('orders')
       .select(`
         id, order_type, total_amount, include_installation,
-        order_items(item_type, unit_price, total_price, quantity, include_installation),
-        assignments(technician_id)
+        order_items(item_type, unit_price, total_price, quantity, include_installation)
       `)
       .eq('id', orderId)
       .single()
 
-    if (!order) return { error: 'الطلب غير موجود' }
+    if (orderErr || !order) {
+      console.error('[Commission] فشل جلب الطلب:', orderErr)
+      return { error: 'الطلب غير موجود' }
+    }
 
-    const assignments = order.assignments as Array<{ technician_id: string }> | null
-    const technicianId = assignments?.[0]?.technician_id
-    if (!technicianId) return { error: 'لا يوجد فني معين لهذا الطلب' }
+    console.log('[Commission] نوع الطلب:', order.order_type, '| المبلغ:', order.total_amount)
+
+    // جلب الفني من جدول التعيينات
+    const { data: assignment } = await supabase
+      .from('assignments')
+      .select('technician_id')
+      .eq('order_id', orderId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    // fallback: إذا لم يوجد في assignments، نبحث في technician_id بالطلب مباشرة
+    let technicianId = assignment?.technician_id ?? null
+
+    if (!technicianId) {
+      const { data: orderDirect } = await supabase
+        .from('orders')
+        .select('technician_id')
+        .eq('id', orderId)
+        .single()
+      technicianId = orderDirect?.technician_id ?? null
+    }
+
+    if (!technicianId) {
+      console.error('[Commission] لا يوجد فني معين للطلب:', orderId)
+      return { error: 'لا يوجد فني معين لهذا الطلب' }
+    }
+
+    console.log('[Commission] الفني المعين:', technicianId)
 
     // التحقق من عدم وجود عمولة مسجلة مسبقاً
     const { data: existing } = await supabase
@@ -34,7 +65,10 @@ export async function calculateCommissionForOrder(orderId: string): Promise<{ er
       .eq('order_id', orderId)
       .maybeSingle()
 
-    if (existing) return {} // العمولة مسجلة مسبقاً — لا حاجة لإعادة الحساب
+    if (existing) {
+      console.log('[Commission] العمولة مسجلة مسبقاً — تم التخطي')
+      return {}
+    }
 
     // تحديد نوع المهمة بناءً على نوع الطلب
     let taskType: TaskType = 'maintenance'
@@ -57,8 +91,10 @@ export async function calculateCommissionForOrder(orderId: string): Promise<{ er
       taskType = 'inspection'
     }
 
+    console.log('[Commission] نوع المهمة:', taskType)
+
     // جلب قاعدة العمولة المناسبة
-    const { data: rule } = await supabase
+    const { data: rule, error: ruleErr } = await supabase
       .from('commission_rules')
       .select('*')
       .eq('task_type', taskType)
@@ -66,7 +102,12 @@ export async function calculateCommissionForOrder(orderId: string): Promise<{ er
       .limit(1)
       .maybeSingle()
 
-    if (!rule) return { error: 'لا توجد قاعدة عمولة مفعّلة لهذا النوع من المهام' }
+    if (ruleErr || !rule) {
+      console.error('[Commission] لم يتم العثور على قاعدة عمولة للنوع:', taskType, ruleErr)
+      return { error: 'لا توجد قاعدة عمولة مفعّلة لهذا النوع من المهام' }
+    }
+
+    console.log('[Commission] القاعدة:', rule.commission_type, '=', rule.value)
 
     // حساب مبلغ العمولة
     let commissionAmount = 0
@@ -77,7 +118,6 @@ export async function calculateCommissionForOrder(orderId: string): Promise<{ er
     } else {
       // نسبة مئوية
       if (taskType === 'installation') {
-        // العمولة على رسوم التركيب فقط
         let installationFee = 0
         if (items) {
           for (const item of items) {
@@ -88,10 +128,11 @@ export async function calculateCommissionForOrder(orderId: string): Promise<{ er
         }
         commissionAmount = (installationFee * Number(rule.value)) / 100
       } else {
-        // العمولة على المبلغ الكلي
         commissionAmount = (orderAmount * Number(rule.value)) / 100
       }
     }
+
+    console.log('[Commission] مبلغ العمولة المحسوب:', commissionAmount)
 
     // تسجيل العمولة
     const { error: insertError } = await supabase
@@ -105,14 +146,16 @@ export async function calculateCommissionForOrder(orderId: string): Promise<{ er
       })
 
     if (insertError) {
-      console.error('[calculateCommission insert error]', insertError)
-      return { error: 'فشل تسجيل العمولة' }
+      console.error('[Commission] فشل الإدراج:', insertError)
+      return { error: `فشل تسجيل العمولة: ${insertError.message}` }
     }
 
+    console.log('[Commission] ✅ تم تسجيل العمولة بنجاح!')
     revalidatePath('/admin/technicians')
+    revalidatePath('/admin/technicians/earnings')
     return {}
   } catch (err) {
-    console.error('[calculateCommissionForOrder]', err)
+    console.error('[Commission] خطأ غير متوقع:', err)
     return { error: 'حدث خطأ أثناء حساب العمولة' }
   }
 }
