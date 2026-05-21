@@ -343,7 +343,6 @@ export default async function InvoicePage({ params }: Props) {
                 <th style={{ padding: '0.75rem 0.5rem', fontWeight: 800 }}>البند / الخدمة</th>
                 <th style={{ padding: '0.75rem 0.5rem', fontWeight: 800, textAlign: 'center' }}>الكمية</th>
                 <th style={{ padding: '0.75rem 0.5rem', fontWeight: 800, textAlign: 'left' }}>سعر الوحدة</th>
-                <th style={{ padding: '0.75rem 0.5rem', fontWeight: 800, textAlign: 'left' }}>التركيب</th>
                 <th style={{ padding: '0.75rem 0.5rem', fontWeight: 800, textAlign: 'left' }}>الإجمالي</th>
               </tr>
             </thead>
@@ -352,23 +351,29 @@ export default async function InvoicePage({ params }: Props) {
                 const quantity = item.quantity ?? 1
                 const unitPrice = item.unitPrice ?? 0
                 const totalPrice = item.totalPrice ?? (unitPrice * quantity)
-                
+
+                // سعر الوحدة المعروض = الإجمالي ÷ الكمية، شامل التركيب إن وُجد
+                const displayUnit = totalPrice / quantity
                 const baseTotal = unitPrice * quantity
                 const installTotal = Math.max(0, totalPrice - baseTotal)
                 const unitInstall = installTotal > 0 ? (installTotal / quantity) : 0
 
-                const name = item.itemType === 'product' 
+                const name = item.itemType === 'product'
                   ? (item.product?.name ?? 'منتج صيانة')
                   : (item.service?.name ?? 'خدمة فنية')
 
                 return (
                   <tr key={item.id || idx} style={{ borderBottom: '1px solid #f1f5f9', color: '#334155' }}>
-                    <td style={{ padding: '1rem 0.5rem', fontWeight: 500 }}>{name}</td>
-                    <td style={{ padding: '1rem 0.5rem', textAlign: 'center' }}>{quantity}</td>
-                    <td style={{ padding: '1rem 0.5rem', textAlign: 'left' }}>{unitPrice.toFixed(2)} ر.س</td>
-                    <td style={{ padding: '1rem 0.5rem', textAlign: 'left', color: unitInstall > 0 ? '#0f172a' : '#94a3b8' }}>
-                      {unitInstall > 0 ? `${unitInstall.toFixed(2)} ر.س` : '—'}
+                    <td style={{ padding: '1rem 0.5rem', fontWeight: 500 }}>
+                      <div>{name}</div>
+                      {unitInstall > 0 && (
+                        <div style={{ marginTop: '0.25rem', fontSize: '0.75rem', color: '#059669', fontWeight: 600 }}>
+                          ✓ شامل {unitInstall.toFixed(2)} ر.س لأجور التركيب والتثبيت
+                        </div>
+                      )}
                     </td>
+                    <td style={{ padding: '1rem 0.5rem', textAlign: 'center' }}>{quantity}</td>
+                    <td style={{ padding: '1rem 0.5rem', textAlign: 'left' }}>{displayUnit.toFixed(2)} ر.س</td>
                     <td style={{ padding: '1rem 0.5rem', textAlign: 'left', fontWeight: 700, color: '#0f172a' }}>
                       {totalPrice.toFixed(2)} ر.س
                     </td>
@@ -429,17 +434,11 @@ export default async function InvoicePage({ params }: Props) {
           {/* المجموع والنهائي */}
           <div style={{ minWidth: '240px', fontSize: '0.875rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', color: '#475569' }}>
-              <span>إجمالي المنتجات:</span>
-              <span>{invoice.subtotal.toFixed(2)} ر.س</span>
+              <span>إجمالي المنتجات</span>
+              <span>{(invoice.subtotal + invoice.installationFee).toFixed(2)} ر.س</span>
             </div>
-            {invoice.installationFee > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', color: '#475569' }}>
-                <span>رسوم التركيب والتثبيت:</span>
-                <span>{invoice.installationFee.toFixed(2)} ر.س</span>
-              </div>
-            )}
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', color: '#475569' }}>
-              <span>الشحن والتوصيل:</span>
+              <span>الشحن والتوصيل</span>
               <span style={{ color: '#166534', fontWeight: 700 }}>مجاني</span>
             </div>
             <div style={{
@@ -452,7 +451,7 @@ export default async function InvoicePage({ params }: Props) {
               fontWeight: 800,
               color: '#1576D4',
             }}>
-              <span>المجموع الكلي:</span>
+              <span>المجموع الكلي</span>
               <span>{invoice.totalAmount.toFixed(2)} ر.س</span>
             </div>
           </div>

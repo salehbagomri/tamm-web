@@ -171,10 +171,11 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
     doc.text(itemName, colName, y + 6, { align: 'right' })
     doc.text(String(item.quantity), colQty, y + 6, { align: 'right' })
 
-    // سعر الوحدة: رقم بمحاذاة يمين عند colPrice + ر.س على يساره بمسافة 1.5 ملم
-    const unitNum = item.unitPrice.toFixed(2)
-    doc.text(unitNum, colPrice, y + 6, { align: 'right' })
-    doc.text('ر.س', colPrice - doc.getTextWidth(unitNum) - 1.5, y + 6, { align: 'right' })
+    // سعر الوحدة المعروض = السعر الفعلي للسطر مقسوماً على الكمية (شامل التركيب إن وُجد)
+    // هذا يضمن أن المعادلة sالحسابية صحيحة: سعر الوحدة × الكمية = الإجمالي
+    const displayUnitPrice = (item.totalPrice / item.quantity).toFixed(2)
+    doc.text(displayUnitPrice, colPrice, y + 6, { align: 'right' })
+    doc.text('ر.س', colPrice - doc.getTextWidth(displayUnitPrice) - 1.5, y + 6, { align: 'right' })
 
     doc.setTextColor(15, 23, 42)
     // الإجمالي: ر.س تبدأ عند colTotal تماماً مثل عنوان العمود (محاذاة يسار موحّدة)
@@ -186,9 +187,11 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
     y += 8.5
 
     if (item.includeInstallation) {
+      // حساب مبلغ التركيب لكل وحدة وعرضه بشكل صريح في الملاحظة
+      const installPerUnit = ((item.totalPrice - item.unitPrice * item.quantity) / item.quantity).toFixed(2)
       doc.setFontSize(7.5)
       doc.setTextColor(5, 150, 105)
-      doc.text('✓ شامل أجور التركيب والتثبيت', colName, y, { align: 'right' })
+      doc.text(`✓ شامل ر.س ${installPerUnit} لأجور التركيب والتثبيت`, colName, y, { align: 'right' })
       doc.setFontSize(9)
       y += 5
     }
@@ -222,16 +225,9 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
   doc.setTextColor(71, 85, 105)
   doc.text('إجمالي المنتجات', summaryEndX, y, { align: 'right' })
   doc.setTextColor(15, 23, 42)
-  drawPrice(data.subtotal.toFixed(2), priceAnchor, y)
+  // إجمالي المنتجات شامل التركيب لأن سعر الوحدة في الجدول صار شاملاً له
+  drawPrice((data.subtotal + data.installationFee).toFixed(2), priceAnchor, y)
   y += 6.5
-
-  if (data.installationFee > 0) {
-    doc.setTextColor(71, 85, 105)
-    doc.text('رسوم التركيب والتثبيت', summaryEndX, y, { align: 'right' })
-    doc.setTextColor(15, 23, 42)
-    drawPrice(data.installationFee.toFixed(2), priceAnchor, y)
-    y += 6.5
-  }
 
   doc.setTextColor(71, 85, 105)
   doc.text('رسوم الشحن والتوصيل', summaryEndX, y, { align: 'right' })
