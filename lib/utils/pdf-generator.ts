@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf'
-import tahomaFontData from './tahoma-font.json'
+import readexFontData from './readex-font.json'
 import logoData from './logo-tamm-base64.json'
 import { reverseArabicLine } from './arabic-helper'
 
@@ -31,10 +31,10 @@ interface InvoicePDFData {
 export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
-  // تسجيل خط Tahoma العربي المتصل والواضح (يدعم تشكيل الحروف وعرضها بشكل متصل ممتاز)
-  doc.addFileToVFS('Tahoma.ttf', tahomaFontData.data)
-  doc.addFont('Tahoma.ttf', 'Tahoma', 'normal')
-  doc.setFont('Tahoma')
+  // تسجيل خط Readex Pro العربي العصري — حروف واضحة جداً ومتصلة بشكل احترافي
+  doc.addFileToVFS('ReadexPro.ttf', readexFontData.data)
+  doc.addFont('ReadexPro.ttf', 'ReadexPro', 'normal')
+  doc.setFont('ReadexPro')
 
   const pageW = 210
   const marginR = 15
