@@ -467,7 +467,7 @@ export default async function InvoicePage({ params }: Props) {
                 </>
               )}
               <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#64748b', lineHeight: 1.4 }}>
-                💡 <strong>التوصيل مجاني:</strong> تشمل هذه الفاتورة الشحن والتوصيل المجاني لكافة البنود المذكورة أعلاه.
+                <strong>التوصيل مجاني:</strong> تشمل هذه الفاتورة الشحن والتوصيل المجاني لكافة البنود المذكورة أعلاه.
               </div>
             </div>
           </div>
