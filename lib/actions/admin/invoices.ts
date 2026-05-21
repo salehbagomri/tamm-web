@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createServerClient, createAdminClient } from '@/lib/supabase/server'
 import { getAdminOrderById } from '@/lib/data/admin/orders'
+import { generateInvoicePDF } from '@/lib/utils/pdf-generator'
 
 export type InvoiceData = {
   id: string
@@ -55,7 +56,7 @@ export async function getInvoiceByOrderId(orderId: string): Promise<InvoiceData 
 }
 
 /**
- * إنشاء فاتورة لطلب مكتمل في قاعدة البيانات (تلقائياً أو يدوياً)
+ * إنشاء فاتورة لطلب مكتمل — توليد PDF + رفع لـ Storage + حفظ في DB
  */
 export async function createInvoiceForOrder(orderId: string): Promise<{ invoice?: InvoiceData; error?: string }> {
   try {
@@ -127,6 +128,56 @@ export async function createInvoiceForOrder(orderId: string): Promise<{ invoice?
     const serialNum = String((count ?? 0) + 1).padStart(4, '0')
     const invoiceNumber = `INV-${year}-${serialNum}`
 
+    // تاريخ الإصدار بالتنسيق المطلوب
+    const now = new Date()
+    const issuedDate = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`
+
+    // ─── توليد PDF ──────────────────────────────────────────────────────
+    let pdfUrl: string | null = `/orders/${orderId}/invoice` // fallback
+
+    try {
+      const pdfBuffer = generateInvoicePDF({
+        invoiceNumber,
+        orderNumber: order.orderNumber ?? orderId.substring(0, 8),
+        customerName: order.customerProfile?.fullName ?? 'عميل',
+        customerPhone: order.customerProfile?.phone ?? null,
+        customerAddress: order.address ?? null,
+        items: order.items.map(item => ({
+          name: item.product?.name ?? item.service?.name ?? 'عنصر',
+          quantity: item.quantity ?? 1,
+          unitPrice: item.unitPrice ?? 0,
+          totalPrice: item.totalPrice ?? 0,
+          includeInstallation: item.includeInstallation ?? false,
+        })),
+        subtotal,
+        installationFee,
+        totalAmount,
+        paymentType: order.paymentType ?? 'cash',
+        issuedAt: `${issuedDate}م`,
+        deliveryFee: 0,
+      })
+
+      // رفع PDF إلى Supabase Storage
+      const fileName = `invoice-${invoiceNumber}.pdf`
+      const { error: uploadErr } = await adminClient.storage
+        .from('receipts')
+        .upload(fileName, pdfBuffer, {
+          contentType: 'application/pdf',
+          upsert: true,
+        })
+
+      if (uploadErr) {
+        console.error('[createInvoiceForOrder] upload error:', uploadErr.message)
+      } else {
+        const { data: urlData } = adminClient.storage.from('receipts').getPublicUrl(fileName)
+        pdfUrl = urlData.publicUrl
+        console.log('[Invoice PDF] ✅ uploaded:', pdfUrl)
+      }
+    } catch (pdfErr) {
+      console.error('[createInvoiceForOrder] PDF generation error:', pdfErr)
+      // نستمر حتى لو فشل توليد الـ PDF — الفاتورة التفاعلية تبقى متاحة
+    }
+
     // إدراج الفاتورة في قاعدة البيانات
     const { data: newInvoice, error: insertErr } = await adminClient
       .from('invoices')
@@ -138,7 +189,7 @@ export async function createInvoiceForOrder(orderId: string): Promise<{ invoice?
         installation_fee: installationFee,
         total_amount: totalAmount,
         payment_type: order.paymentType,
-        pdf_url: `/orders/${orderId}/invoice` // نوجه افتراضياً لرابط الفاتورة التفاعلية القابلة للطباعة
+        pdf_url: pdfUrl,
       })
       .select('*')
       .single()
