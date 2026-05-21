@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function NotFound() {
   return (
@@ -23,18 +24,13 @@ export default function NotFound() {
         boxShadow: '0 8px 30px rgba(0, 0, 0, 0.3)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
-          <div style={{
-            width: '60px',
-            height: '60px',
-            borderRadius: '12px',
-            backgroundColor: '#1576D4',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            fontSize: '2rem',
-            fontWeight: 900,
-          }}>ت</div>
+          <Image
+            src="/logo-tamm.png"
+            alt="شعار منصة تمّ"
+            width={60}
+            height={60}
+            style={{ borderRadius: '12px' }}
+          />
         </div>
         <h1 style={{ fontSize: '4rem', fontWeight: 900, color: '#1576D4', margin: '0 0 1rem' }}>404</h1>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', color: '#E8F0F8' }}>الصفحة غير موجودة</h2>

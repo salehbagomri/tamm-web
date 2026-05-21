@@ -277,7 +277,7 @@ export default async function InvoicePage({ params }: Props) {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
               <Image
-                src="/logo-tamm.svg"
+                src="/logo-tamm.png"
                 alt="شعار منصة تمّ"
                 width={42}
                 height={42}
