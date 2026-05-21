@@ -303,9 +303,13 @@ export default async function InvoicePage({ params }: Props) {
               </div>
               <div>
                 <span style={{ fontWeight: 600, color: '#0f172a' }}>تاريخ الإصدار:</span> {
-                  new Date(invoice.issuedAt).toLocaleDateString('ar-SA', {
-                    year: 'numeric', month: 'long', day: 'numeric'
-                  })
+                  (() => {
+                    const d = new Date(invoice.issuedAt)
+                    const dd = String(d.getDate()).padStart(2, '0')
+                    const mm = String(d.getMonth() + 1).padStart(2, '0')
+                    const yyyy = d.getFullYear()
+                    return `${dd}-${mm}-${yyyy}م`
+                  })()
                 }
               </div>
               <div>
