@@ -1,18 +1,35 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/lib/store/cart-context'
 import CartItemRow from '@/components/customer/cart/CartItemRow'
 import { formatPrice } from '@/lib/utils/format'
+import { validateCartStock } from '@/lib/actions/orders'
 
 export default function CartPage() {
   const { items, totalAmount } = useCart()
   const router = useRouter()
+  const [stockError, setStockError] = useState('')
+  const [checking, setChecking] = useState(false)
 
   const installTotal = items.reduce((sum, i) =>
     sum + (i.includeInstallation ? i.installationPrice * i.quantity : 0), 0)
   const productTotal = totalAmount - installTotal
+
+  async function handleCheckout() {
+    setStockError('')
+    setChecking(true)
+    const cartData = items.map(item => ({ id: item.id, quantity: item.quantity, name: item.name }))
+    const result = await validateCartStock(cartData)
+    setChecking(false)
+    if (result.error) {
+      setStockError(result.error)
+    } else {
+      router.push('/checkout')
+    }
+  }
 
   if (items.length === 0) {
     return (
@@ -88,16 +105,24 @@ export default function CartPage() {
             </div>
           </div>
 
+          {stockError && (
+            <div style={{ padding: '0.75rem 1rem', marginBottom: '1rem', borderRadius: '10px', backgroundColor: 'rgba(224,82,82,0.1)', border: '1px solid rgba(224,82,82,0.3)', color: 'var(--error)', fontSize: '0.85rem', textAlign: 'center' }}>
+              ⚠️ {stockError}
+            </div>
+          )}
+
           <button
-            onClick={() => router.push('/checkout')}
+            onClick={handleCheckout}
+            disabled={checking}
             style={{
               width: '100%', padding: '0.875rem', borderRadius: '12px',
-              background: 'linear-gradient(135deg, var(--blue-primary), var(--blue-mid))',
+              background: checking ? 'var(--bg-surface2)' : 'linear-gradient(135deg, var(--blue-primary), var(--blue-mid))',
               color: '#fff', fontWeight: 700, fontSize: '1rem',
-              border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-              boxShadow: '0 8px 24px rgba(21,118,212,0.3)',
+              border: 'none', cursor: checking ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+              boxShadow: checking ? 'none' : '0 8px 24px rgba(21,118,212,0.3)',
+              opacity: checking ? 0.7 : 1,
             }}>
-            إتمام الطلب ←
+            {checking ? 'جاري التحقق من التوفر...' : 'إتمام الطلب ←'}
           </button>
 
           <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-faint)', marginTop: '0.75rem' }}>

@@ -47,6 +47,30 @@ function generateOrderNumber(): string {
   return `TM-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`
 }
 
+// التحقق المبكر من توفر الكمية — يُستدعى من صفحة السلة قبل الانتقال للدفع
+export async function validateCartStock(
+  cartItems: { id: string; quantity: number; name: string }[]
+): Promise<{ error?: string }> {
+  const supabase = await createServerClient()
+  const productIds = cartItems.map(item => item.id)
+  const { data: stockData, error: stockErr } = await supabase
+    .from('products')
+    .select('id, name, stock_quantity')
+    .in('id', productIds)
+
+  if (stockErr || !stockData) return { error: 'فشل التحقق من توفر المنتجات' }
+
+  for (const item of cartItems) {
+    const product = stockData.find(p => p.id === item.id)
+    if (!product) return { error: `المنتج "${item.name}" غير موجود في النظام` }
+    if (product.stock_quantity < item.quantity) {
+      return { error: `الكمية المطلوبة من "${product.name}" غير متوفرة. المتوفر: ${product.stock_quantity} قطعة فقط` }
+    }
+  }
+
+  return {}
+}
+
 // إنشاء طلب منتجات من السلة
 export async function createProductOrder(
   cartItems: CartItemInput[],
