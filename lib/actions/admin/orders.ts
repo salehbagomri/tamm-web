@@ -50,6 +50,14 @@ export async function updateOrderStatus(
     } catch (err) {
       console.error('[invoice generation on completion failed]', err)
     }
+
+    // ─── حساب عمولة الفني تلقائياً ─────────────────────────────────
+    try {
+      const { calculateCommissionForOrder } = await import('@/lib/actions/admin/commissions')
+      await calculateCommissionForOrder(orderId)
+    } catch (err) {
+      console.error('[commission calculation on completion failed]', err)
+    }
   }
 
   // ─── إرجاع الكمية عند إلغاء الطلب ─────────────────────────────
