@@ -167,11 +167,11 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
     doc.text('ر.س', colPrice - doc.getTextWidth(unitNum) - 1.5, y + 6, { align: 'right' })
 
     doc.setTextColor(15, 23, 42)
-    // الإجمالي: مرسى ثابت إلى يمين بداية العمود الأيسر، رقم بمحاذاة يمين + ر.س على يساره
+    // الإجمالي: ر.س تبدأ عند colTotal تماماً مثل عنوان العمود (محاذاة يسار موحّدة)
     const totalNum = item.totalPrice.toFixed(2)
-    const totalAnchor = colTotal + 31
-    doc.text(totalNum, totalAnchor, y + 6, { align: 'right' })
-    doc.text('ر.س', totalAnchor - doc.getTextWidth(totalNum) - 1.5, y + 6, { align: 'right' })
+    const rasW = doc.getTextWidth('ر.س')
+    doc.text('ر.س', colTotal, y + 6, { align: 'left' })
+    doc.text(totalNum, colTotal + rasW + 1.5, y + 6, { align: 'left' })
 
     y += 8.5
 
@@ -230,7 +230,8 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
     drawPrice(data.deliveryFee.toFixed(2), priceAnchor, y)
   } else {
     doc.setTextColor(5, 150, 105)
-    doc.text('مجاني', valX, y, { align: 'left' })
+    // "مجاني" بمحاذاة يمين عند priceAnchor لتُطابق محاذاة بقية القيم في الملخّص
+    doc.text('مجاني', priceAnchor, y, { align: 'right' })
   }
   y += 8
 
