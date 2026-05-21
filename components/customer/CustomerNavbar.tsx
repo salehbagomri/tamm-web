@@ -114,7 +114,7 @@ export default function CustomerNavbar({ user }: CustomerNavbarProps) {
             display: 'flex', alignItems: 'center', gap: '0.5rem',
             textDecoration: 'none', flexShrink: 0,
           }}>
-            <TammLogo size={36} />
+            <TammLogo size={36} variant="light" />
             <span style={{
               fontWeight: 800, fontSize: '1.375rem',
               background: 'linear-gradient(135deg, var(--blue-light), var(--blue-sky))',

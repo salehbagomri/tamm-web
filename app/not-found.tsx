@@ -24,7 +24,7 @@ export default function NotFound() {
         boxShadow: '0 8px 30px rgba(0, 0, 0, 0.3)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
-          <TammLogo size={64} />
+          <TammLogo size={64} variant="light" />
         </div>
         <h1 style={{ fontSize: '4rem', fontWeight: 900, color: '#1576D4', margin: '0 0 1rem' }}>404</h1>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', color: '#E8F0F8' }}>الصفحة غير موجودة</h2>

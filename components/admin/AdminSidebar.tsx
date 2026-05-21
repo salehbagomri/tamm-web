@@ -195,7 +195,7 @@ export default function AdminSidebar({
         borderBottom: '1px solid var(--border)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-          <TammLogo size={36} />
+          <TammLogo size={36} variant="light" />
           <div>
             <p style={{ margin: 0, fontWeight: 800, fontSize: '1rem', color: 'var(--blue-light)' }}>
               تمّ

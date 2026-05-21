@@ -39,7 +39,7 @@ export default async function OnboardingPage() {
             marginBottom: '1rem',
             filter: 'drop-shadow(0 8px 24px rgba(34,201,138,0.25))',
           }}>
-            <TammLogo size={64} />
+            <TammLogo size={64} variant="light" />
           </div>
           <h1 style={{ fontSize: '1.375rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
             أكمل بياناتك
