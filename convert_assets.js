@@ -19,6 +19,15 @@ const readexJson = { name: 'ReadexPro', data: readexBase64 };
 fs.writeFileSync(path.join(__dirname, 'lib', 'utils', 'readex-font.json'), JSON.stringify(readexJson));
 console.log(`Readex Font converted: ${readexBuffer.length} bytes -> ${readexBase64.length} base64 chars`);
 
+// 1.7 Convert Tahoma font from Windows to base64
+console.log('=== Converting Tahoma.ttf to base64 ===');
+const tahomaPath = 'C:\\Windows\\Fonts\\tahoma.ttf';
+const tahomaBuffer = fs.readFileSync(tahomaPath);
+const tahomaBase64 = tahomaBuffer.toString('base64');
+const tahomaJson = { name: 'Tahoma', data: tahomaBase64 };
+fs.writeFileSync(path.join(__dirname, 'lib', 'utils', 'tahoma-font.json'), JSON.stringify(tahomaJson));
+console.log(`Tahoma Font converted: ${tahomaBuffer.length} bytes -> ${tahomaBase64.length} base64 chars`);
+
 // 2. Convert logo to base64
 console.log('=== Converting logo-tamm.jpg to base64 ===');
 const logoPath = path.join(__dirname, 'public', 'logo-tamm.jpg');
