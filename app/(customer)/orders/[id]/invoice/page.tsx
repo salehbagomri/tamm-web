@@ -100,6 +100,20 @@ export default async function InvoicePage({ params }: Props) {
     }
   }
 
+  // إذا كانت الفاتورة موجودة ولكن لا تحتوي على رابط PDF حقيقي في التخزين، نقوم بتوليد الـ PDF ورفعه وتحديث الفاتورة
+  if (invoice && (!invoice.pdfUrl || !invoice.pdfUrl.startsWith('http'))) {
+    const { regenerateInvoicePDFAction } = await import('@/lib/actions/admin/invoices')
+    const updatedInvoice = await regenerateInvoicePDFAction(orderId)
+    if (updatedInvoice) {
+      invoice = updatedInvoice
+    }
+  }
+
+  // إذا كانت الفاتورة تحتوي على رابط PDF حقيقي، نقوم بإعادة التوجيه إليه مباشرة لتنزيل أو استعراض الـ PDF
+  if (invoice && invoice.pdfUrl && invoice.pdfUrl.startsWith('http')) {
+    redirect(invoice.pdfUrl)
+  }
+
   // إذا لم تكن هناك فاتورة بعد (مثلاً الطلب ليس مكتملاً بعد)
   if (!invoice) {
     return (

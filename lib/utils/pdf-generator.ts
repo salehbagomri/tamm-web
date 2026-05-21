@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf'
-import fontData from './alexandria-font.json'
+import fontData from './amiri-font.json'
 
 interface InvoiceItem {
   name: string
@@ -29,10 +29,10 @@ interface InvoicePDFData {
 export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
-  // تسجيل الخط العربي
-  doc.addFileToVFS('Alexandria-Regular.ttf', fontData.data)
-  doc.addFont('Alexandria-Regular.ttf', 'Alexandria', 'normal')
-  doc.setFont('Alexandria')
+  // تسجيل الخط العربي (Amiri)
+  doc.addFileToVFS('Amiri-Regular.ttf', fontData.data)
+  doc.addFont('Amiri-Regular.ttf', 'Amiri', 'normal')
+  doc.setFont('Amiri')
 
   // تجاوز مشاكل عرض اللغة العربية في jsPDF عبر تشكيل الحروف وعكسها برمجياً
   const originalText = doc.text.bind(doc)
@@ -45,7 +45,6 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
     return originalText(text, x, y, options)
   } as any
 
-
   const pageW = 210
   const marginR = 15 // هامش يمين (الصفحة RTL)
   const marginL = 15
@@ -55,178 +54,187 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
   // ─── الرأس ──────────────────────────────────────────────────────────────
 
   // اسم المنصة
-  doc.setFontSize(22)
-  doc.setTextColor(21, 118, 212) // blue-primary
-  doc.text('تمّ', pageW - marginR, y, { align: 'right' })
+  doc.setFontSize(24)
+  doc.setTextColor(21, 118, 212) // blue-primary (#1576D4)
+  doc.text('منصة تمّ', pageW - marginR, y, { align: 'right' })
 
   doc.setFontSize(9)
-  doc.setTextColor(122, 150, 176) // text-second
-  doc.text('خدمات كهربائية متكاملة', pageW - marginR, y + 7, { align: 'right' })
+  doc.setTextColor(71, 85, 105) // text-second (Slate 600)
+  doc.text('لخدمات التكييف وأنظمة الطاقة الشمسية', pageW - marginR, y + 7.5, { align: 'right' })
 
   // رقم الفاتورة (يسار)
-  doc.setFontSize(10)
-  doc.setTextColor(232, 240, 248) // text-primary
-  doc.text(data.invoiceNumber, marginL, y, { align: 'left' })
+  doc.setFontSize(11)
+  doc.setTextColor(15, 23, 42) // text-primary (Slate 900)
+  doc.text(`رقم الفاتورة: ${data.invoiceNumber}`, marginL, y, { align: 'left' })
 
-  doc.setFontSize(8)
-  doc.setTextColor(122, 150, 176)
-  doc.text(data.issuedAt, marginL, y + 5, { align: 'left' })
+  doc.setFontSize(9)
+  doc.setTextColor(71, 85, 105) // Slate 600
+  doc.text(`تاريخ الإصدار: ${data.issuedAt}`, marginL, y + 6, { align: 'left' })
 
-  y += 18
+  y += 20
 
-  // خط فاصل
-  doc.setDrawColor(26, 46, 68) // border
-  doc.setLineWidth(0.3)
+  // خط فاصل علوي
+  doc.setDrawColor(226, 232, 240) // border (Slate 200)
+  doc.setLineWidth(0.4)
   doc.line(marginL, y, pageW - marginR, y)
   y += 8
 
   // ─── بيانات العميل ──────────────────────────────────────────────────────
 
-  doc.setFontSize(10)
-  doc.setTextColor(141, 203, 250) // blue-sky
-  doc.text('بيانات العميل', pageW - marginR, y, { align: 'right' })
+  doc.setFontSize(11)
+  doc.setTextColor(21, 118, 212) // blue-primary
+  doc.text('معلومات العميل والخدمة', pageW - marginR, y, { align: 'right' })
   y += 7
 
+  // صندوق معلومات رمادي فاتح
+  doc.setFillColor(248, 250, 252) // bg-surface (Slate 50)
+  doc.rect(marginL, y - 2, contentW, 26, 'F')
+  doc.setDrawColor(241, 245, 249)
+  doc.rect(marginL, y - 2, contentW, 26, 'S')
+
   doc.setFontSize(9)
-  doc.setTextColor(232, 240, 248)
-  const customerInfo = [
-    `الاسم: ${data.customerName}`,
-    data.customerPhone ? `الجوال: ${data.customerPhone}` : null,
-    data.customerAddress ? `العنوان: ${data.customerAddress}` : null,
-    `رقم الطلب: #${data.orderNumber}`,
-  ].filter(Boolean) as string[]
+  doc.setTextColor(15, 23, 42) // Slate 900
 
-  for (const line of customerInfo) {
-    doc.text(line, pageW - marginR, y, { align: 'right' })
-    y += 5.5
+  // كتابة البيانات داخل الصندوق (يمين ويسار)
+  const rightColX = pageW - marginR - 4
+  const leftColX = marginL + 4
+
+  // العمود الأيمن
+  doc.text(`الاسم: ${data.customerName}`, rightColX, y + 4, { align: 'right' })
+  if (data.customerPhone) {
+    doc.text(`رقم الجوال: ${data.customerPhone}`, rightColX, y + 10, { align: 'right' })
   }
+  doc.text(`رقم الطلب: #${data.orderNumber}`, rightColX, y + 16, { align: 'right' })
 
-  y += 5
+  // العمود الأيسر
+  if (data.customerAddress) {
+    doc.text(`العنوان: ${data.customerAddress}`, leftColX, y + 4, { align: 'left' })
+  }
+  const paymentLabel = data.paymentType === 'cash' ? 'نقداً عند الاستلام' :
+                       data.paymentType === 'card' ? 'بطاقة دفع إلكتروني' :
+                       data.paymentType === 'transfer' || data.paymentType === 'bank' ? 'تحويل بنكي' : data.paymentType
+  doc.text(`طريقة الدفع: ${paymentLabel}`, leftColX, y + 10, { align: 'left' })
+
+  y += 30
 
   // ─── جدول المنتجات/الخدمات ─────────────────────────────────────────────
 
   // رأس الجدول
-  doc.setFillColor(13, 24, 37) // bg-surface
-  doc.rect(marginL, y, contentW, 8, 'F')
+  doc.setFillColor(15, 23, 42) // Slate 900
+  doc.rect(marginL, y, contentW, 9, 'F')
 
-  doc.setFontSize(8)
-  doc.setTextColor(122, 150, 176)
+  doc.setFontSize(9.5)
+  doc.setTextColor(255, 255, 255) // White
 
   const colX = {
-    name: pageW - marginR - 2,
+    name: pageW - marginR - 3,
     qty: pageW - marginR - 95,
     price: pageW - marginR - 120,
-    total: marginL + 2,
+    total: marginL + 3,
   }
 
-  doc.text('المنتج / الخدمة', colX.name, y + 5.5, { align: 'right' })
-  doc.text('الكمية', colX.qty, y + 5.5, { align: 'right' })
-  doc.text('السعر', colX.price, y + 5.5, { align: 'right' })
-  doc.text('الإجمالي', colX.total, y + 5.5, { align: 'left' })
+  doc.text('البند / الخدمة', colX.name, y + 6, { align: 'right' })
+  doc.text('الكمية', colX.qty, y + 6, { align: 'right' })
+  doc.text('سعر الوحدة', colX.price, y + 6, { align: 'right' })
+  doc.text('الإجمالي', colX.total, y + 6, { align: 'left' })
 
-  y += 10
+  y += 9
 
   // صفوف المنتجات
-  doc.setTextColor(232, 240, 248)
-  doc.setFontSize(8.5)
+  doc.setTextColor(15, 23, 42) // Slate 900
+  doc.setFontSize(9)
 
   for (const item of data.items) {
-    // خط فاصل خفيف
-    doc.setDrawColor(26, 46, 68)
-    doc.setLineWidth(0.15)
+    // خط فاصل خفيف بين الصفوف
+    doc.setDrawColor(241, 245, 249) // Slate 100
+    doc.setLineWidth(0.2)
     doc.line(marginL, y, pageW - marginR, y)
 
     y += 1.5
 
-    const itemName = item.name.length > 40 ? item.name.substring(0, 37) + '...' : item.name
-    doc.text(itemName, colX.name, y + 4, { align: 'right' })
-    doc.text(String(item.quantity), colX.qty, y + 4, { align: 'right' })
-    doc.text(`${item.unitPrice.toFixed(0)} ر.س`, colX.price, y + 4, { align: 'right' })
-    doc.text(`${item.totalPrice.toFixed(0)} ر.س`, colX.total, y + 4, { align: 'left' })
+    const itemName = item.name.length > 45 ? item.name.substring(0, 42) + '...' : item.name
+    doc.text(itemName, colX.name, y + 5, { align: 'right' })
+    doc.text(String(item.quantity), colX.qty, y + 5, { align: 'right' })
+    doc.text(`${item.unitPrice.toFixed(0)} ر.س`, colX.price, y + 5, { align: 'right' })
+    doc.text(`${item.totalPrice.toFixed(0)} ر.س`, colX.total, y + 5, { align: 'left' })
 
-    y += 7.5
+    y += 8.5
 
     // إشارة التركيب
     if (item.includeInstallation) {
-      doc.setFontSize(7)
-      doc.setTextColor(34, 201, 138) // success
-      doc.text('+ شامل التركيب', colX.name, y, { align: 'right' })
-      doc.setTextColor(232, 240, 248)
-      doc.setFontSize(8.5)
-      y += 5
+      doc.setFontSize(7.5)
+      doc.setTextColor(5, 150, 105) // success (Green 600)
+      doc.text('+ شامل أجور التركيب والتثبيت', colX.name, y, { align: 'right' })
+      doc.setTextColor(15, 23, 42) // reset to Slate 900
+      doc.setFontSize(9)
+      y += 5.5
     }
   }
 
-  y += 5
+  y += 3
 
   // ─── الملخص المالي ──────────────────────────────────────────────────────
 
-  doc.setDrawColor(26, 46, 68)
-  doc.setLineWidth(0.3)
+  doc.setDrawColor(226, 232, 240) // Slate 200
+  doc.setLineWidth(0.4)
   doc.line(marginL, y, pageW - marginR, y)
-  y += 6
+  y += 7
 
-  const summaryX = pageW - marginR - 2
-  const summaryValX = marginL + 30
+  const summaryX = pageW - marginR - 3
+  const summaryValX = marginL + 3
 
-  doc.setFontSize(9)
-  doc.setTextColor(122, 150, 176)
+  doc.setFontSize(9.5)
+  doc.setTextColor(71, 85, 105) // Slate 600
 
   // المجموع الفرعي
-  doc.text('إجمالي المنتجات:', summaryX, y, { align: 'right' })
-  doc.setTextColor(232, 240, 248)
-  doc.text(`${data.subtotal.toFixed(0)} ر.س`, summaryValX, y, { align: 'left' })
-  y += 6
+  doc.text('إجمالي المنتجات والخدمات:', summaryX, y, { align: 'right' })
+  doc.setTextColor(15, 23, 42) // Slate 900
+  doc.text(`${data.subtotal.toFixed(2)} ر.س`, summaryValX, y, { align: 'left' })
+  y += 6.5
 
   // رسوم التركيب
   if (data.installationFee > 0) {
-    doc.setTextColor(122, 150, 176)
-    doc.text('رسوم التركيب والتثبيت:', summaryX, y, { align: 'right' })
-    doc.setTextColor(232, 240, 248)
-    doc.text(`${data.installationFee.toFixed(0)} ر.س`, summaryValX, y, { align: 'left' })
-    y += 6
+    doc.setTextColor(71, 85, 105)
+    doc.text('رسوم التركيب والتثبيت الإضافية:', summaryX, y, { align: 'right' })
+    doc.setTextColor(15, 23, 42)
+    doc.text(`${data.installationFee.toFixed(2)} ر.s`, summaryValX, y, { align: 'left' })
+    y += 6.5
   }
 
   // رسوم التوصيل
-  doc.setTextColor(122, 150, 176)
-  doc.text('رسوم التوصيل:', summaryX, y, { align: 'right' })
-  doc.setTextColor(34, 201, 138)
-  doc.text(data.deliveryFee > 0 ? `${data.deliveryFee.toFixed(0)} ر.س` : 'مجاني', summaryValX, y, { align: 'left' })
+  doc.setTextColor(71, 85, 105)
+  doc.text('رسوم الشحن والتوصيل:', summaryX, y, { align: 'right' })
+  doc.setTextColor(5, 150, 105) // Green 600
+  doc.text(data.deliveryFee > 0 ? `${data.deliveryFee.toFixed(2)} ر.س` : 'مجاني', summaryValX, y, { align: 'left' })
   y += 8
 
-  // خط مزدوج
-  doc.setDrawColor(21, 118, 212)
+  // خط الإجمالي
+  doc.setDrawColor(21, 118, 212) // Tamm Blue
   doc.setLineWidth(0.5)
-  doc.line(marginL + 60, y, pageW - marginR, y)
+  doc.line(marginL + 80, y, pageW - marginR, y)
   y += 7
 
   // الإجمالي النهائي
-  doc.setFontSize(12)
-  doc.setTextColor(141, 203, 250)
-  doc.text('الإجمالي:', summaryX, y, { align: 'right' })
-  doc.setTextColor(62, 158, 245) // blue-light
-  doc.text(`${data.totalAmount.toFixed(0)} ر.س`, summaryValX, y, { align: 'left' })
-  y += 6
-
-  // طريقة الدفع
-  doc.setFontSize(8)
-  doc.setTextColor(122, 150, 176)
-  const paymentLabel = data.paymentType === 'cash' ? 'نقداً عند الاستلام' :
-                       data.paymentType === 'card' ? 'بطاقة ائتمان' :
-                       data.paymentType === 'transfer' ? 'تحويل بنكي' : data.paymentType
-  doc.text(`طريقة الدفع: ${paymentLabel}`, summaryX, y, { align: 'right' })
+  doc.setFontSize(13)
+  doc.setTextColor(21, 118, 212) // Tamm Blue
+  doc.text('المجموع النهائي (شامل ضريبة القيمة المضافة):', summaryX, y, { align: 'right' })
+  doc.setFontSize(14)
+  doc.setTextColor(15, 23, 42) // Slate 900
+  doc.text(`${data.totalAmount.toFixed(2)} ر.س`, summaryValX, y, { align: 'left' })
+  y += 10
 
   // ─── التذييل ────────────────────────────────────────────────────────────
 
-  const footerY = 280
-  doc.setDrawColor(26, 46, 68)
-  doc.setLineWidth(0.2)
+  const footerY = 275
+  doc.setDrawColor(241, 245, 249)
+  doc.setLineWidth(0.3)
   doc.line(marginL, footerY - 5, pageW - marginR, footerY - 5)
 
+  doc.setFontSize(8.5)
+  doc.setTextColor(100, 116, 139) // Slate 500
+  doc.text('نشكركم لتعاملكم مع منصة تمّ لخدمات التكييف المتكاملة', pageW / 2, footerY, { align: 'center' })
   doc.setFontSize(7.5)
-  doc.setTextColor(62, 84, 104) // text-faint
-  doc.text('شكراً لثقتكم بمنصة تمّ — خدمات كهربائية متكاملة', pageW / 2, footerY, { align: 'center' })
-  doc.text('هذه الفاتورة صادرة إلكترونياً ولا تحتاج إلى توقيع أو ختم', pageW / 2, footerY + 4, { align: 'center' })
+  doc.text('هذه الفاتورة صادرة إلكترونياً ولا تتطلب توقيعاً أو ختماً رسمياً', pageW / 2, footerY + 5, { align: 'center' })
 
   return doc.output('arraybuffer')
 }

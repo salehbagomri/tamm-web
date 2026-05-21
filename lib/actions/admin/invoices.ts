@@ -238,3 +238,105 @@ export async function createInvoiceForOrder(orderId: string): Promise<{ invoice?
     return { error: 'حدث خطأ غير متوقع أثناء توليد الفاتورة' }
   }
 }
+
+/**
+ * إعادة توليد ملف PDF للفاتورة ورفعه للتخزين وتحديث الرابط في قاعدة البيانات
+ */
+export async function regenerateInvoicePDFAction(orderId: string): Promise<InvoiceData | null> {
+  try {
+    const adminClient = createAdminClient()
+
+    // 1. جلب الفاتورة الحالية
+    const { data: invoiceData, error: invoiceErr } = await adminClient
+      .from('invoices')
+      .select('*')
+      .eq('order_id', orderId)
+      .maybeSingle()
+
+    if (invoiceErr || !invoiceData) {
+      console.error('[regenerateInvoicePDFAction] invoice not found:', invoiceErr?.message)
+      return null
+    }
+
+    // 2. جلب الطلب
+    const order = await getAdminOrderById(orderId, adminClient)
+    if (!order) {
+      console.error('[regenerateInvoicePDFAction] order not found')
+      return null
+    }
+
+    const invoiceNumber = invoiceData.invoice_number
+    const subtotal = Number(invoiceData.subtotal)
+    const installationFee = Number(invoiceData.installation_fee)
+    const totalAmount = Number(invoiceData.total_amount)
+
+    // تاريخ الإصدار من الفاتورة الحالية أو تاريخ الإنشاء
+    const d = new Date(invoiceData.created_at || new Date())
+    const dd = String(d.getDate()).padStart(2, '0')
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const yyyy = d.getFullYear()
+    const issuedDate = `${dd}-${mm}-${yyyy}`
+
+    // 3. حساب رسوم التوصيل (افتراضية 0)
+    const deliveryFee = 0
+
+    // 4. توليد الـ PDF
+    const pdfBuffer = generateInvoicePDF({
+      invoiceNumber,
+      orderNumber: order.orderNumber ?? orderId.substring(0, 8),
+      customerName: order.customerProfile?.fullName ?? 'عميل',
+      customerPhone: order.customerProfile?.phone ?? null,
+      customerAddress: order.address ?? null,
+      items: order.items.map(item => ({
+        name: item.product?.name ?? item.service?.name ?? 'عنصر',
+        quantity: item.quantity ?? 1,
+        unitPrice: item.unitPrice ?? 0,
+        totalPrice: item.totalPrice ?? 0,
+        includeInstallation: item.includeInstallation ?? false,
+      })),
+      subtotal,
+      installationFee,
+      totalAmount,
+      paymentType: order.paymentType ?? 'cash',
+      issuedAt: `${issuedDate}م`,
+      deliveryFee,
+    })
+
+    // 5. رفع الـ PDF إلى Storage
+    const fileName = `invoice-${invoiceNumber}.pdf`
+    const { error: uploadErr } = await adminClient.storage
+      .from('receipts')
+      .upload(fileName, pdfBuffer, {
+        contentType: 'application/pdf',
+        upsert: true,
+      })
+
+    if (uploadErr) {
+      console.error('[regenerateInvoicePDFAction] upload error:', uploadErr.message)
+      return mapInvoice(invoiceData)
+    }
+
+    const { data: urlData } = adminClient.storage.from('receipts').getPublicUrl(fileName)
+    const pdfUrl = urlData.publicUrl
+
+    // 6. تحديث الفاتورة في قاعدة البيانات
+    const { data: updatedData, error: updateErr } = await adminClient
+      .from('invoices')
+      .update({ pdf_url: pdfUrl })
+      .eq('id', invoiceData.id)
+      .select('*')
+      .single()
+
+    if (updateErr) {
+      console.error('[regenerateInvoicePDFAction] db update error:', updateErr.message)
+      return mapInvoice(invoiceData)
+    }
+
+    console.log('[regenerateInvoicePDFAction] ✅ PDF regenerated & updated in DB:', pdfUrl)
+    return mapInvoice(updatedData)
+  } catch (err) {
+    console.error('[regenerateInvoicePDFAction] Error:', err)
+    return null
+  }
+}
+

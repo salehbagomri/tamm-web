@@ -45,8 +45,8 @@ export async function updateOrderStatus(
   // ─── توليد فاتورة تلقائياً عند إتمام الطلب ───────────────────────────
   if (status === 'completed') {
     try {
-      const { createInvoiceForOrder } = await import('@/lib/actions/admin/invoices')
-      await createInvoiceForOrder(orderId)
+      const { createInvoiceForOrderAdmin } = await import('@/lib/actions/admin/invoices')
+      await createInvoiceForOrderAdmin(orderId)
     } catch (err) {
       console.error('[invoice generation on completion failed]', err)
     }
