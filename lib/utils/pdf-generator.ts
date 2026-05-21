@@ -160,10 +160,18 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
     const itemName = item.name.length > 45 ? item.name.substring(0, 42) + '...' : item.name
     doc.text(itemName, colName, y + 6, { align: 'right' })
     doc.text(String(item.quantity), colQty, y + 6, { align: 'right' })
-    doc.text(`${item.unitPrice.toFixed(2)} ر.س`, colPrice, y + 6, { align: 'right' })
+
+    // سعر الوحدة: رقم بمحاذاة يمين عند colPrice + ر.س على يساره بمسافة 1.5 ملم
+    const unitNum = item.unitPrice.toFixed(2)
+    doc.text(unitNum, colPrice, y + 6, { align: 'right' })
+    doc.text('ر.س', colPrice - doc.getTextWidth(unitNum) - 1.5, y + 6, { align: 'right' })
 
     doc.setTextColor(15, 23, 42)
-    doc.text(`${item.totalPrice.toFixed(2)} ر.س`, colTotal, y + 6, { align: 'left' })
+    // الإجمالي: مرسى ثابت إلى يمين بداية العمود الأيسر، رقم بمحاذاة يمين + ر.س على يساره
+    const totalNum = item.totalPrice.toFixed(2)
+    const totalAnchor = colTotal + 31
+    doc.text(totalNum, totalAnchor, y + 6, { align: 'right' })
+    doc.text('ر.س', totalAnchor - doc.getTextWidth(totalNum) - 1.5, y + 6, { align: 'right' })
 
     y += 8.5
 
@@ -192,24 +200,38 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
 
   doc.setFontSize(9)
 
+  // مرسى السعر في الملخّص: نقطة ثابتة على يسار الصفحة لكل القيم تضمن محاذاة موحّدة
+  const priceAnchor = valX + 28
+
+  // رسم سعر مع عملة ر.س على يساره بمسافة 1.5 ملم
+  function drawPrice(value: string, anchor: number, lineY: number) {
+    doc.text(value, anchor, lineY, { align: 'right' })
+    doc.text('ر.س', anchor - doc.getTextWidth(value) - 1.5, lineY, { align: 'right' })
+  }
+
   doc.setTextColor(71, 85, 105)
   doc.text('إجمالي المنتجات:', summaryEndX, y, { align: 'right' })
   doc.setTextColor(15, 23, 42)
-  doc.text(`${data.subtotal.toFixed(2)} ر.س`, valX, y, { align: 'left' })
+  drawPrice(data.subtotal.toFixed(2), priceAnchor, y)
   y += 6.5
 
   if (data.installationFee > 0) {
     doc.setTextColor(71, 85, 105)
     doc.text('رسوم التركيب والتثبيت:', summaryEndX, y, { align: 'right' })
     doc.setTextColor(15, 23, 42)
-    doc.text(`${data.installationFee.toFixed(2)} ر.س`, valX, y, { align: 'left' })
+    drawPrice(data.installationFee.toFixed(2), priceAnchor, y)
     y += 6.5
   }
 
   doc.setTextColor(71, 85, 105)
   doc.text('رسوم الشحن والتوصيل:', summaryEndX, y, { align: 'right' })
-  doc.setTextColor(5, 150, 105)
-  doc.text(data.deliveryFee > 0 ? `${data.deliveryFee.toFixed(2)} ر.س` : 'مجاني', valX, y, { align: 'left' })
+  if (data.deliveryFee > 0) {
+    doc.setTextColor(5, 150, 105)
+    drawPrice(data.deliveryFee.toFixed(2), priceAnchor, y)
+  } else {
+    doc.setTextColor(5, 150, 105)
+    doc.text('مجاني', valX, y, { align: 'left' })
+  }
   y += 8
 
   doc.setDrawColor(21, 118, 212)
@@ -223,7 +245,7 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
 
   doc.setFontSize(14)
   doc.setTextColor(15, 23, 42)
-  doc.text(`${data.totalAmount.toFixed(2)} ر.س`, valX, y, { align: 'left' })
+  drawPrice(data.totalAmount.toFixed(2), priceAnchor, y)
 
   // ═══════════════════════════════════════════════════════════════════════════
   // ─── التذييل ───────────────────────────────────────────────────────────
