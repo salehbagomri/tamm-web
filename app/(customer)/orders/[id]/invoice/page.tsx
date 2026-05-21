@@ -42,7 +42,48 @@ export default async function InvoicePage({ params }: Props) {
   }
 
   if (!order) {
-    return notFound()
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#080E18',
+        color: '#E8F0F8',
+        padding: '2rem',
+        textAlign: 'center',
+        fontFamily: 'var(--font-alexandria), sans-serif',
+      }}>
+        <div style={{
+          backgroundColor: '#0D1825',
+          border: '1px solid #1A2E44',
+          borderRadius: '16px',
+          padding: '2.5rem',
+          maxWidth: '500px',
+          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.3)',
+        }}>
+          <span style={{ fontSize: '3rem', marginBottom: '1rem', display: 'block' }}>⚠️</span>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1rem', color: '#E8F0F8' }}>الطلب غير موجود</h2>
+          <p style={{ color: '#7A96B0', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+            عذراً، الطلب الذي تحاول الوصول إليه غير موجود أو غير مصرح لك بالوصول إليه. يرجى التأكد من الرابط الصحيح والمحاولة مرة أخرى.
+          </p>
+          <Link href={isManager ? '/admin/dashboard' : '/home'} style={{
+            display: 'inline-block',
+            padding: '0.75rem 2rem',
+            backgroundColor: '#1576D4',
+            color: '#fff',
+            borderRadius: '10px',
+            textDecoration: 'none',
+            fontWeight: 600,
+            fontSize: '0.9rem',
+            transition: 'background 0.2s',
+          }}>
+            العودة للرئيسية
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   // جلب الفاتورة
