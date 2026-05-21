@@ -36,9 +36,14 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
           <h1 style={{ fontSize: '1.625rem', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 0.25rem' }}>إدارة المنتجات</h1>
           <p style={{ color: 'var(--text-second)', margin: 0, fontSize: '0.9rem' }}>إجمالي {totalCount} منتج</p>
         </div>
-        <Link href="/admin/products/new" style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', background: 'linear-gradient(135deg, var(--blue-primary), var(--blue-mid))', color: '#fff', fontWeight: 700, textDecoration: 'none', fontSize: '0.9rem' }}>
-          + إضافة منتج
-        </Link>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <Link href="/admin/products/import" style={{ padding: '0.75rem 1.25rem', borderRadius: '12px', background: 'var(--bg-surface2)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontWeight: 700, textDecoration: 'none', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+            📥 استيراد مخزون
+          </Link>
+          <Link href="/admin/products/new" style={{ padding: '0.75rem 1.5rem', borderRadius: '12px', background: 'linear-gradient(135deg, var(--blue-primary), var(--blue-mid))', color: '#fff', fontWeight: 700, textDecoration: 'none', fontSize: '0.9rem' }}>
+            + إضافة منتج
+          </Link>
+        </div>
       </div>
       <Suspense><AdminProductsFilters /></Suspense>
       <AdminProductsTable products={products} totalCount={totalCount} />
