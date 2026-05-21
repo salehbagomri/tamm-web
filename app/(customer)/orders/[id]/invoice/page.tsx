@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createServerClient, createAdminClient } from '@/lib/supabase/server'
 import { getInvoiceByOrderId, createInvoiceForOrder } from '@/lib/actions/admin/invoices'
 import { getAdminOrderById } from '@/lib/data/admin/orders'
@@ -275,18 +276,13 @@ export default async function InvoicePage({ params }: Props) {
           {/* لوجو وبيانات المنصة */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <span style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '8px',
-                backgroundColor: '#1576D4',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                fontSize: '1.25rem',
-                fontWeight: 900,
-              }}>ت</span>
+              <Image
+                src="/logo-tamm.svg"
+                alt="شعار منصة تمّ"
+                width={42}
+                height={42}
+                style={{ borderRadius: '10px' }}
+              />
               <h1 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
                 منصة تمّ
               </h1>
@@ -527,25 +523,50 @@ export default async function InvoicePage({ params }: Props) {
       {/* الستايلات الخاصة بالطباعة والشاشة */}
       <style>{`
         @media print {
+          /* إخفاء كل العناصر خارج الفاتورة */
           body {
             background-color: #ffffff !important;
             color: #1f2937 !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
-          .no-print {
+          /* إخفاء شريط التنقل والعناصر غير المطلوبة في الطباعة */
+          nav, header, footer,
+          .no-print,
+          [class*="Navbar"],
+          [class*="navbar"] {
             display: none !important;
           }
+          /* إخفاء عناصر layout الخارجية */
+          body > div > div > nav,
+          body > div > div > header {
+            display: none !important;
+          }
+          /* إعدادات حاوية الفاتورة */
           .invoice-page-container {
             background-color: #ffffff !important;
             padding: 0 !important;
             min-height: auto !important;
           }
+          /* إعدادات ورقة الفاتورة */
           .invoice-paper {
             box-shadow: none !important;
             border: none !important;
-            padding: 0 !important;
+            border-radius: 0 !important;
+            padding: 1.5rem !important;
             margin: 0 !important;
             max-width: 100% !important;
             width: 100% !important;
+          }
+          /* التأكد من أن الحاوية الأب لا تضيف أي حواجز */
+          main {
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+          /* ضبط حجم الصفحة */
+          @page {
+            size: A4;
+            margin: 15mm;
           }
         }
       `}</style>

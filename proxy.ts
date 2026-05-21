@@ -86,6 +86,8 @@ export async function proxy(request: NextRequest) {
   if (isProtectedCustomerPath(path)) {
     if (!user) return NextResponse.redirect(new URL('/login', request.url))
     const role = await getUserRole(supabase, user.id)
+    // السماح للمدير بالوصول لصفحة الفاتورة (الصفحة تعالج الصلاحيات داخلياً)
+    if (role === 'manager' && /^\/orders\/[^/]+\/invoice/.test(path)) return response
     if (role === 'manager') return NextResponse.redirect(new URL('/admin/dashboard', request.url))
     if (role === 'technician') return NextResponse.redirect(new URL('/access-denied', request.url))
     return response

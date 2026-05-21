@@ -23,7 +23,7 @@ function mapOrder(raw: any): Order {
       serviceTypeId: item.service_type_id,
       quantity: item.quantity,
       unitPrice: item.unit_price,
-      totalPrice: item.unit_price * item.quantity,
+      totalPrice: item.total_price ?? (item.unit_price * item.quantity),
       product: item.product,
       service: item.service,
       includeInstallation: item.include_installation
