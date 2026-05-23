@@ -72,9 +72,14 @@ export async function bulkUpdateStock(items: StockImportItem[]): Promise<{ succe
         updateData.cost_price = item.newCostPrice
       }
 
-      // إذا زاد المخزون عن صفر وكان المنتج غير متوفر وتفعيل الإخفاء التلقائي نشط، نعيد تفعيل توفر المنتج تلقائياً
+      // إذا زاد المخزون عن صفر وكان المنتج غير متوفر وتفعيل الإخفاء التلقائي نشط، نعيد تفعيل توفر المنتج
+      // ملاحظة: DB trigger يُدير is_available تلقائياً عند الخصم/الإرجاع عبر order_items، لكن لا يفحص
+      // UPDATE المباشر على products، فنضبطها يدوياً هنا.
       if (qtyAfter > 0 && !product.is_available && product.auto_hide_when_out) {
         updateData.is_available = true
+      }
+      if (qtyAfter <= 0 && product.is_available && product.auto_hide_when_out) {
+        updateData.is_available = false
       }
 
       const { error: updateError } = await adminClient
@@ -92,7 +97,7 @@ export async function bulkUpdateStock(items: StockImportItem[]): Promise<{ succe
         .from('stock_movements')
         .insert({
           product_id: item.productId,
-          movement_type: 'import',
+          movement_type: 'manual_adjustment',
           quantity_before: qtyBefore,
           quantity_after: qtyAfter,
           quantity_change: qtyChange,

@@ -63,34 +63,7 @@ export async function updateOrderStatus(
     }
   }
 
-  // ─── المخزون يُرجَع تلقائياً عبر DB trigger عند الإلغاء. هنا فقط: إعادة إظهار المنتج إن لزم ───
-  if (status === 'cancelled') {
-    try {
-      const { data: items } = await supabase
-        .from('order_items')
-        .select('product_id')
-        .eq('order_id', orderId)
-        .eq('item_type', 'product')
-
-      const productIds = (items ?? []).map(i => i.product_id).filter((id): id is string => !!id)
-
-      if (productIds.length > 0) {
-        const { data: products } = await supabase
-          .from('products')
-          .select('id, stock_quantity, auto_hide_when_out, is_available')
-          .in('id', productIds)
-
-        for (const product of products ?? []) {
-          if (!product.is_available && product.auto_hide_when_out && (product.stock_quantity ?? 0) > 0) {
-            await supabase.from('products').update({ is_available: true }).eq('id', product.id)
-          }
-        }
-      }
-    } catch (err) {
-      console.error('[post-restoration visibility handling]', err)
-    }
-  }
-  // ───────────────────────────────────────────────────────────────────
+  // المخزون والإخفاء/الإظهار التلقائي يديرهما DB trigger عند الإلغاء.
 
   // إرسال إشعار للعميل
   try {

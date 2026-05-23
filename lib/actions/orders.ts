@@ -149,20 +149,16 @@ export async function createProductOrder(
     return { error: `حدث خطأ أثناء حفظ المنتجات: ${itemsErr.message}` }
   }
 
-  // ─── المخزون يُخصم تلقائياً عبر DB trigger. هنا فقط: إخفاء تلقائي + تنبيهات ───
+  // ─── المخزون والإخفاء التلقائي يديرهما DB trigger. هنا فقط: تنبيهات المدير ───
   try {
     const { data: updatedProducts } = await adminClient
       .from('products')
-      .select('id, name, stock_quantity, auto_hide_when_out, low_stock_threshold, is_available')
+      .select('id, name, stock_quantity, low_stock_threshold')
       .in('id', productIds)
 
     for (const product of updatedProducts ?? []) {
       const newQty = product.stock_quantity ?? 0
       const threshold = product.low_stock_threshold ?? 3
-
-      if (newQty <= 0 && product.auto_hide_when_out && product.is_available) {
-        await adminClient.from('products').update({ is_available: false }).eq('id', product.id)
-      }
 
       if (newQty <= 0) {
         await notifyManagers({
@@ -183,7 +179,7 @@ export async function createProductOrder(
       }
     }
   } catch (err) {
-    console.error('[post-deduction stock handling]', err)
+    console.error('[low stock notifications]', err)
   }
   // ───────────────────────────────────────────────────────────────────
 
