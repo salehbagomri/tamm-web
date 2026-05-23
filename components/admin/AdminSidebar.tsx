@@ -71,6 +71,15 @@ const navItems: NavItem[] = [
     ),
   },
   {
+    label: 'حركات المخزون', path: '/admin/inventory/movements',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 6h18M3 12h18M3 18h18"/>
+        <path d="m16 3 3 3-3 3M8 21l-3-3 3-3"/>
+      </svg>
+    ),
+  },
+  {
     label: 'الخدمات', path: '/admin/services',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
