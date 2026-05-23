@@ -171,14 +171,13 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
     doc.text(itemName, colName, y + 6, { align: 'right' })
     doc.text(String(item.quantity), colQty, y + 6, { align: 'right' })
 
-    // سعر الوحدة المعروض = السعر الفعلي للسطر مقسوماً على الكمية (شامل التركيب إن وُجد)
-    // هذا يضمن أن المعادلة sالحسابية صحيحة: سعر الوحدة × الكمية = الإجمالي
-    const displayUnitPrice = (item.totalPrice / item.quantity).toFixed(2)
-    doc.text(displayUnitPrice, colPrice, y + 6, { align: 'right' })
-    doc.text('ر.س', colPrice - doc.getTextWidth(displayUnitPrice) - 1.5, y + 6, { align: 'right' })
+    // سعر الوحدة الصافي (بدون تركيب) — التركيب يظهر كسطر مستقل أسفل اسم البند
+    const bareUnit = (item.unitPrice ?? 0).toFixed(2)
+    doc.text(bareUnit, colPrice, y + 6, { align: 'right' })
+    doc.text('ر.س', colPrice - doc.getTextWidth(bareUnit) - 1.5, y + 6, { align: 'right' })
 
     doc.setTextColor(15, 23, 42)
-    // الإجمالي: ر.س تبدأ عند colTotal تماماً مثل عنوان العمود (محاذاة يسار موحّدة)
+    // الإجمالي = (سعر صافي + تركيب) × كمية — يساوي item.totalPrice
     const totalNum = item.totalPrice.toFixed(2)
     const rasW = doc.getTextWidth('ر.س')
     doc.text('ر.س', colTotal, y + 6, { align: 'left' })
@@ -187,11 +186,15 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
     y += 8.5
 
     if (item.includeInstallation) {
-      // حساب مبلغ التركيب لكل وحدة وعرضه بشكل صريح في الملاحظة
-      const installPerUnit = ((item.totalPrice - item.unitPrice * item.quantity) / item.quantity).toFixed(2)
+      // حساب أجور التركيب لكل وحدة وإجمالي التركيب للسطر
+      const installPerUnit = (item.totalPrice - item.unitPrice * item.quantity) / item.quantity
+      const installLineTotal = installPerUnit * item.quantity
       doc.setFontSize(7.5)
       doc.setTextColor(5, 150, 105)
-      doc.text(`✓ شامل ر.س ${installPerUnit} لأجور التركيب والتثبيت`, colName, y, { align: 'right' })
+      doc.text(
+        `🛠 خدمة التركيب: ${installLineTotal.toFixed(2)} ر.س (${installPerUnit.toFixed(2)} × ${item.quantity})`,
+        colName, y, { align: 'right' }
+      )
       doc.setFontSize(9)
       y += 5
     }
@@ -223,11 +226,18 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
   }
 
   doc.setTextColor(71, 85, 105)
-  doc.text('إجمالي المنتجات', summaryEndX, y, { align: 'right' })
+  doc.text('إجمالي المنتجات (صافي)', summaryEndX, y, { align: 'right' })
   doc.setTextColor(15, 23, 42)
-  // إجمالي المنتجات شامل التركيب لأن سعر الوحدة في الجدول صار شاملاً له
-  drawPrice((data.subtotal + data.installationFee).toFixed(2), priceAnchor, y)
+  drawPrice(data.subtotal.toFixed(2), priceAnchor, y)
   y += 6.5
+
+  if (data.installationFee > 0) {
+    doc.setTextColor(71, 85, 105)
+    doc.text('إجمالي خدمة التركيب', summaryEndX, y, { align: 'right' })
+    doc.setTextColor(5, 150, 105)
+    drawPrice(data.installationFee.toFixed(2), priceAnchor, y)
+    y += 6.5
+  }
 
   doc.setTextColor(71, 85, 105)
   doc.text('رسوم الشحن والتوصيل', summaryEndX, y, { align: 'right' })
@@ -236,7 +246,6 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
     drawPrice(data.deliveryFee.toFixed(2), priceAnchor, y)
   } else {
     doc.setTextColor(5, 150, 105)
-    // "مجاني" بمحاذاة يمين عند priceAnchor لتُطابق محاذاة بقية القيم في الملخّص
     doc.text('مجاني', priceAnchor, y, { align: 'right' })
   }
   y += 8
