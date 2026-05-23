@@ -2,14 +2,36 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useCart } from '@/lib/store/cart-context'
+import { useCart, type CartItem } from '@/lib/store/cart-context'
 import { createProductOrder, type CheckoutData } from '@/lib/actions/orders'
 import Input from '@/components/ui/Input'
-import { formatPrice } from '@/lib/utils/format'
 import PaymentMethodSelector from './PaymentMethodSelector'
 import TammDatePicker from './TammDatePicker'
 import OrderSuccessModal from './OrderSuccessModal'
 import type { PaymentMethod } from '@/lib/types/payment'
+import type { OrderItem } from '@/lib/types/order'
+import OrderLineItem from '@/components/shared/order/OrderLineItem'
+import OrderSummary from '@/components/shared/order/OrderSummary'
+
+// محوّل CartItem → OrderItem لإعادة استخدام مكوّنات العرض الموحّدة في خطوة المراجعة
+function cartItemToOrderItem(ci: CartItem): OrderItem {
+  const unit = ci.price ?? 0
+  const installPerUnit = ci.installationPrice ?? 0
+  const lineTotal = (unit + (ci.includeInstallation ? installPerUnit : 0)) * ci.quantity
+  return {
+    id: ci.id,
+    orderId: '',
+    itemType: 'product',
+    productId: ci.id,
+    serviceTypeId: null,
+    quantity: ci.quantity,
+    unitPrice: unit,
+    totalPrice: lineTotal,
+    includeInstallation: ci.includeInstallation,
+    installationPricePerUnit: installPerUnit,
+    product: { name: ci.name, image_url: ci.imageUrl },
+  }
+}
 
 const TIME_SLOTS = [
   { key: '8AM-12PM', label: 'صباحاً (8 ص - 12 م)' },
@@ -37,12 +59,6 @@ const ICON_WALLET = (
     <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
   </svg>
 )
-const ICON_WRENCH = (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-  </svg>
-)
-
 interface CheckoutFormProps {
   initialAddress?: string | null
   initialPhone?: string | null
@@ -68,7 +84,8 @@ function fromDateString(s: string): Date | null {
 
 export default function CheckoutForm({ initialAddress, initialPhone, paymentMethods }: CheckoutFormProps) {
   const router = useRouter()
-  const { items, totalAmount, clearCart } = useCart()
+  const { items, clearCart } = useCart()
+  const previewItems = items.map(cartItemToOrderItem)
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -434,32 +451,17 @@ export default function CheckoutForm({ initialAddress, initialPhone, paymentMeth
               />
             </div>
 
-            {/* ملخص المنتجات */}
-            <div style={{ backgroundColor: 'var(--bg-surface2)', borderRadius: '12px', padding: '1rem' }}>
-              <p style={{ fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 0.75rem' }}>
+            {/* ملخص المنتجات — عرض موحّد مع تفاصيل الطلب والفاتورة */}
+            <div style={{ backgroundColor: 'var(--bg-surface2)', borderRadius: '12px', padding: '1rem 1.125rem' }}>
+              <p style={{ fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 0.25rem', fontSize: '0.95rem' }}>
                 المنتجات ({items.length})
               </p>
-              {items.map((item, idx) => (
-                <div key={item.id} style={{
-                  display: 'flex', flexDirection: 'column', gap: '0.25rem',
-                  ...(idx < items.length - 1 ? { marginBottom: '0.75rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border)' } : {}),
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
-                    <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{item.quantity}× {item.name}</span>
-                    <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
-                      {item.isPriceOnRequest ? 'عند الطلب' : formatPrice((item.price ?? 0) * item.quantity)}
-                    </span>
-                  </div>
-                  {item.includeInstallation && item.installationPrice > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', paddingRight: '1.25rem' }}>
-                      <span style={{ color: 'var(--blue-light)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        {ICON_WRENCH} خدمة التركيب
-                      </span>
-                      <span style={{ color: 'var(--text-second)' }}>+ {formatPrice(item.installationPrice * item.quantity)}</span>
-                    </div>
-                  )}
-                </div>
-              ))}
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {previewItems.map((it) => (
+                  <OrderLineItem key={it.id} item={it} />
+                ))}
+              </div>
+              <OrderSummary items={previewItems} />
             </div>
 
             {/* ملخص طريقة الدفع */}
@@ -474,16 +476,6 @@ export default function CheckoutForm({ initialAddress, initialPhone, paymentMeth
                   رقم الحساب: {selectedPaymentMethod.accountNumber}
                 </p>
               )}
-            </div>
-
-            {/* الإجمالي */}
-            <div style={{
-              display: 'flex', justifyContent: 'space-between', padding: '1rem',
-              backgroundColor: 'rgba(21,118,212,0.08)', borderRadius: '12px',
-              border: '1px solid rgba(21,118,212,0.2)',
-            }}>
-              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>الإجمالي</span>
-              <span style={{ fontWeight: 700, fontSize: '1.25rem', color: 'var(--blue-light)' }}>{formatPrice(totalAmount)}</span>
             </div>
 
             {error && (
