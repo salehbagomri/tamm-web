@@ -87,21 +87,31 @@ export default function CartPage() {
             ملخص الطلب
           </h2>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginBottom: '1.25rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-second)', fontSize: '0.9rem' }}>المنتجات</span>
-              <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{formatPrice(productTotal)}</span>
+              <span style={{ color: 'var(--text-second)', fontSize: '0.9rem' }}>إجمالي المنتجات (صافي)</span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                {formatPrice(productTotal)}
+              </span>
             </div>
             {installTotal > 0 && (
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-second)', fontSize: '0.9rem' }}>التركيب</span>
-                <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{formatPrice(installTotal)}</span>
+                <span style={{ color: 'var(--text-second)', fontSize: '0.9rem' }}>إجمالي خدمة التركيب</span>
+                <span style={{ color: 'var(--success)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                  {formatPrice(installTotal)}
+                </span>
               </div>
             )}
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: 'var(--text-second)', fontSize: '0.9rem' }}>الشحن والتوصيل</span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>مجاني</span>
+            </div>
             <div style={{ height: '1px', backgroundColor: 'var(--border)', margin: '0.5rem 0' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: '1.0625rem' }}>الإجمالي</span>
-              <span style={{ color: 'var(--blue-light)', fontWeight: 700, fontSize: '1.25rem' }}>{formatPrice(totalAmount)}</span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: '1.0625rem' }}>الإجمالي الكلي</span>
+              <span style={{ color: 'var(--blue-light)', fontWeight: 800, fontSize: '1.25rem', fontVariantNumeric: 'tabular-nums' }}>
+                {formatPrice(totalAmount)}
+              </span>
             </div>
           </div>
 
