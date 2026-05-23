@@ -60,6 +60,12 @@ export default function AdminOrderActions({ order, technicians, invoice }: Admin
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
 
+  // طلب منتجات بدون تركيب → سير التوصيل لا يحتاج تعيين فني
+  const isDeliveryOnly =
+    order.orderType === 'product' &&
+    (order.items?.length ?? 0) > 0 &&
+    order.items.every((it) => !it.includeInstallation)
+
   // حقول تغيير الحالة اليدوي
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus>(order.status)
 
@@ -82,6 +88,14 @@ export default function AdminOrderActions({ order, technicians, invoice }: Admin
     setLoading(false)
     if (res.error) setError(res.error)
     else showSuccess('تم تحديث الحالة بنجاح ✓')
+  }
+
+  async function advanceDeliveryStatus(next: OrderStatus, successMsg: string) {
+    setLoading(true)
+    const res = await updateOrderStatus(order.id, next)
+    setLoading(false)
+    if (res.error) setError(res.error)
+    else showSuccess(successMsg)
   }
 
   async function handleAssign() {
@@ -239,8 +253,117 @@ export default function AdminOrderActions({ order, technicians, invoice }: Admin
         </div>
       )}
 
-      {/* ── تعيين الفني (pending / confirmed) ── */}
-      {(order.status === 'pending' || order.status === 'confirmed') && (
+      {/* ── سير التوصيل لطلبات المنتجات بدون تركيب ── */}
+      {isDeliveryOnly && order.status !== 'cancelled' && (
+        <div style={cardStyle}>
+          <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>📦</span>
+            <span>إدارة التوصيل</span>
+          </h3>
+          <p style={{ margin: '0 0 1.25rem', fontSize: '0.825rem', color: 'var(--text-second)', lineHeight: 1.5 }}>
+            هذا الطلب لا يتضمن تركيباً، فلا يحتاج تعيين فني. تابع الحالة عبر الأزرار التالية.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {order.status === 'pending' && (
+              <button
+                onClick={() => advanceDeliveryStatus('confirmed', 'تم تأكيد الطلب ✓')}
+                disabled={loading}
+                style={{ ...btnPrimary, opacity: loading ? 0.6 : 1 }}
+              >
+                {loading ? 'جاري التأكيد...' : '✓ تأكيد الطلب'}
+              </button>
+            )}
+
+            {order.status === 'confirmed' && (
+              <button
+                onClick={() => advanceDeliveryStatus('on_the_way', 'الموصل تحرّك إلى العميل ✓')}
+                disabled={loading}
+                style={{ ...btnPrimary, opacity: loading ? 0.6 : 1 }}
+              >
+                {loading ? 'جاري التحديث...' : '🚚 بدء التوصيل'}
+              </button>
+            )}
+
+            {order.status === 'on_the_way' && (
+              <button
+                onClick={() => advanceDeliveryStatus('completed', 'تم تسليم الطلب بنجاح ✓')}
+                disabled={loading}
+                style={{
+                  ...btnPrimary,
+                  background: 'linear-gradient(135deg, var(--success), #16a34a)',
+                  opacity: loading ? 0.6 : 1,
+                }}
+              >
+                {loading ? 'جاري التحديث...' : '📬 تم التسليم'}
+              </button>
+            )}
+
+            {(order.status === 'assigned' || order.status === 'in_progress') && (
+              <button
+                onClick={() => advanceDeliveryStatus('completed', 'تم تسليم الطلب بنجاح ✓')}
+                disabled={loading}
+                style={{
+                  ...btnPrimary,
+                  background: 'linear-gradient(135deg, var(--success), #16a34a)',
+                  opacity: loading ? 0.6 : 1,
+                }}
+              >
+                {loading ? 'جاري التحديث...' : '📬 تم التسليم'}
+              </button>
+            )}
+
+            {order.status === 'completed' && (
+              <div style={{
+                padding: '0.75rem 1rem', borderRadius: '10px',
+                backgroundColor: 'rgba(34,201,138,0.1)',
+                border: '1px solid rgba(34,201,138,0.3)',
+                color: 'var(--success)', fontSize: '0.875rem', textAlign: 'center', fontWeight: 600,
+              }}>
+                ✓ تم تسليم هذا الطلب
+              </div>
+            )}
+          </div>
+
+          {/* خط زمني مبسّط للحالة */}
+          <div style={{ marginTop: '1.25rem', display: 'flex', justifyContent: 'space-between', gap: '0.25rem' }}>
+            {([
+              { key: 'pending', label: 'معلق' },
+              { key: 'confirmed', label: 'مؤكد' },
+              { key: 'on_the_way', label: 'في الطريق' },
+              { key: 'completed', label: 'مُسلَّم' },
+            ] as { key: OrderStatus; label: string }[]).map((step, idx, arr) => {
+              const order_idx = arr.findIndex(s => s.key === order.status)
+              const isDone = order_idx >= 0 && idx <= order_idx
+              return (
+                <div key={step.key} style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{
+                    width: '28px', height: '28px', borderRadius: '50%',
+                    margin: '0 auto 0.375rem',
+                    backgroundColor: isDone ? 'var(--success)' : 'var(--bg-surface2)',
+                    color: isDone ? '#fff' : 'var(--text-faint)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '0.75rem', fontWeight: 700,
+                    border: '1px solid var(--border)',
+                  }}>
+                    {isDone ? '✓' : idx + 1}
+                  </div>
+                  <p style={{
+                    margin: 0, fontSize: '0.7rem',
+                    color: isDone ? 'var(--text-primary)' : 'var(--text-faint)',
+                    fontWeight: isDone ? 600 : 400,
+                  }}>
+                    {step.label}
+                  </p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── تعيين الفني (pending / confirmed) — يُخفى لطلبات التوصيل البحتة ── */}
+      {!isDeliveryOnly && (order.status === 'pending' || order.status === 'confirmed') && (
         <div style={cardStyle}>
           <h3 style={{ margin: '0 0 1.25rem', fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
             👷 تعيين الفني
@@ -326,8 +449,8 @@ export default function AdminOrderActions({ order, technicians, invoice }: Admin
         </div>
       )}
 
-      {/* ── بيانات التعيين الحالي (assigned وما بعدها) ── */}
-      {order.status !== 'pending' && order.status !== 'confirmed' && order.technicianName && (
+      {/* ── بيانات التعيين الحالي (assigned وما بعدها) — يُخفى لطلبات التوصيل البحتة ── */}
+      {!isDeliveryOnly && order.status !== 'pending' && order.status !== 'confirmed' && order.technicianName && (
         <div style={cardStyle}>
           <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
             👷 الفني المعيَّن
