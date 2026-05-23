@@ -357,9 +357,9 @@ export default async function InvoicePage({ params }: Props) {
                 return (
                   <tr key={item.id || idx} style={{ borderBottom: '1px solid #f1f5f9', color: '#334155' }}>
                     <td style={{ padding: '1rem 0.5rem', fontWeight: 500 }}>
-                      <div style={{ fontWeight: 600, color: '#0f172a' }}>{name}</div>
+                      <div style={{ fontWeight: 600, color: '#0f172a', lineHeight: 1.4 }}>{name}</div>
                       {totals.hasInstallation && (
-                        <div style={{ marginTop: '0.35rem', fontSize: '0.75rem', color: '#059669', fontWeight: 600 }}>
+                        <div style={{ marginTop: '0.625rem', fontSize: '0.75rem', color: '#059669', fontWeight: 600, lineHeight: 1.5 }}>
                           🛠 خدمة التركيب: {totals.installationSubtotal.toFixed(2)} ر.س
                           {' '}({(item.installationPricePerUnit ?? 0).toFixed(2)} × {item.quantity})
                         </div>

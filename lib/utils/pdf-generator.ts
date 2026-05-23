@@ -158,7 +158,7 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
   for (const item of data.items) {
     if (rowEven) {
       doc.setFillColor(248, 250, 252)
-      doc.rect(marginL, y, contentW, item.includeInstallation ? 13 : 8.5, 'F')
+      doc.rect(marginL, y, contentW, item.includeInstallation ? 15.5 : 8.5, 'F')
     }
     rowEven = !rowEven
 
@@ -186,6 +186,8 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
     y += 8.5
 
     if (item.includeInstallation) {
+      // مسافة إضافية بين اسم المنتج وسطر التركيب لمنع تلاصقهما
+      y += 2.5
       // حساب أجور التركيب لكل وحدة وإجمالي التركيب للسطر
       const installPerUnit = (item.totalPrice - item.unitPrice * item.quantity) / item.quantity
       const installLineTotal = installPerUnit * item.quantity
@@ -196,7 +198,7 @@ export function generateInvoicePDF(data: InvoicePDFData): ArrayBuffer {
         colName, y, { align: 'right' }
       )
       doc.setFontSize(9)
-      y += 5
+      y += 4.5
     }
   }
 
