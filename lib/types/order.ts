@@ -31,6 +31,9 @@ export type OrderItem = {
   product?: any
   service?: any
   includeInstallation?: boolean
+  // قيمة التركيب لكل وحدة (من products.installation_price)
+  // غير مخزّنة في order_items، يجب JOIN عليها في الـ fetchers
+  installationPricePerUnit?: number
 }
 
 export type Order = {
