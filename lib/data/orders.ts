@@ -26,7 +26,8 @@ function mapOrder(raw: any): Order {
       totalPrice: item.total_price ?? (item.unit_price * item.quantity),
       product: item.product,
       service: item.service,
-      includeInstallation: item.include_installation
+      includeInstallation: item.include_installation,
+      installationPricePerUnit: item.product?.installation_price ?? 0,
     })) || [],
     customerProfile: raw.customerProfile || null,
     technicianId: raw.technician_id ?? null,

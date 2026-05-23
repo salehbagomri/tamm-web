@@ -158,7 +158,7 @@ export async function getAdminOrderById(orderId: string, supabaseClient?: any): 
       profiles!orders_customer_id_fkey(id, full_name, phone, email, address),
       order_items(
         id, item_type, quantity, unit_price, total_price, include_installation,
-        products(id, name, image_url),
+        products(id, name, image_url, installation_price),
         service_types(id, name)
       ),
       assignments(
@@ -235,6 +235,7 @@ export async function getAdminOrderById(orderId: string, supabaseClient?: any): 
       unitPrice: item.unit_price,
       totalPrice: item.total_price,
       includeInstallation: item.include_installation ?? false,
+      installationPricePerUnit: item.products?.installation_price ?? 0,
       product: item.products ?? undefined,
       service: item.service_types ?? undefined,
     })),
