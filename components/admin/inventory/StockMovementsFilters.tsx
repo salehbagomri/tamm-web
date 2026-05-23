@@ -93,14 +93,20 @@ export default function StockMovementsFilters() {
           type="date"
           value={dateFrom}
           onChange={(e) => updateParam('dateFrom', e.target.value || null)}
-          style={inputStyle}
+          onClick={(e) => e.currentTarget.showPicker?.()}
+          onFocus={(e) => e.currentTarget.showPicker?.()}
+          className="tamm-date-input"
+          style={{ ...inputStyle, cursor: 'pointer', minWidth: '150px' }}
         />
         <label style={{ fontSize: '0.85rem', color: 'var(--text-second)' }}>إلى:</label>
         <input
           type="date"
           value={dateTo}
           onChange={(e) => updateParam('dateTo', e.target.value || null)}
-          style={inputStyle}
+          onClick={(e) => e.currentTarget.showPicker?.()}
+          onFocus={(e) => e.currentTarget.showPicker?.()}
+          className="tamm-date-input"
+          style={{ ...inputStyle, cursor: 'pointer', minWidth: '150px' }}
         />
       </div>
 
@@ -119,6 +125,25 @@ export default function StockMovementsFilters() {
           إعادة تعيين
         </button>
       )}
+
+      <style>{`
+        .tamm-date-input::-webkit-calendar-picker-indicator {
+          filter: invert(0.85);
+          cursor: pointer;
+          opacity: 0.85;
+          margin-inline-start: 0.25rem;
+        }
+        .tamm-date-input::-webkit-calendar-picker-indicator:hover {
+          opacity: 1;
+        }
+        .tamm-date-input::-webkit-datetime-edit-fields-wrapper {
+          color: var(--text-primary);
+        }
+        .tamm-date-input:not(:focus):placeholder-shown,
+        .tamm-date-input:invalid {
+          color: var(--text-faint);
+        }
+      `}</style>
     </div>
   )
 }
