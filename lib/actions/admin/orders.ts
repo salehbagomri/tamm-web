@@ -63,41 +63,31 @@ export async function updateOrderStatus(
     }
   }
 
-  // ─── إرجاع الكمية عند إلغاء الطلب ─────────────────────────────
+  // ─── المخزون يُرجَع تلقائياً عبر DB trigger عند الإلغاء. هنا فقط: إعادة إظهار المنتج إن لزم ───
   if (status === 'cancelled') {
     try {
       const { data: items } = await supabase
         .from('order_items')
-        .select('product_id, quantity')
+        .select('product_id')
         .eq('order_id', orderId)
         .eq('item_type', 'product')
 
-      if (items && items.length > 0) {
-        for (const item of items) {
-          if (!item.product_id) continue
+      const productIds = (items ?? []).map(i => i.product_id).filter((id): id is string => !!id)
 
-          // جلب الكمية الحالية
-          const { data: product } = await supabase
-            .from('products')
-            .select('stock_quantity, auto_hide_when_out, is_available')
-            .eq('id', item.product_id)
-            .single()
+      if (productIds.length > 0) {
+        const { data: products } = await supabase
+          .from('products')
+          .select('id, stock_quantity, auto_hide_when_out, is_available')
+          .in('id', productIds)
 
-          if (product) {
-            const newQty = product.stock_quantity + item.quantity
-            const updateData: Record<string, unknown> = { stock_quantity: newQty }
-
-            // إعادة إظهار المنتج إذا كان مخفياً بسبب نفاد الكمية
-            if (!product.is_available && product.auto_hide_when_out && newQty > 0) {
-              updateData.is_available = true
-            }
-
-            await supabase.from('products').update(updateData).eq('id', item.product_id)
+        for (const product of products ?? []) {
+          if (!product.is_available && product.auto_hide_when_out && (product.stock_quantity ?? 0) > 0) {
+            await supabase.from('products').update({ is_available: true }).eq('id', product.id)
           }
         }
       }
     } catch (err) {
-      console.error('[stock restoration on cancel]', err)
+      console.error('[post-restoration visibility handling]', err)
     }
   }
   // ───────────────────────────────────────────────────────────────────

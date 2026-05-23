@@ -149,43 +149,41 @@ export async function createProductOrder(
     return { error: `حدث خطأ أثناء حفظ المنتجات: ${itemsErr.message}` }
   }
 
-  // ─── خصم الكمية من المخزون + تنبيهات ────────────────────────────
+  // ─── المخزون يُخصم تلقائياً عبر DB trigger. هنا فقط: إخفاء تلقائي + تنبيهات ───
   try {
-    for (const item of cartItems) {
-      const product = stockData.find(p => p.id === item.id)!
-      const newQty = product.stock_quantity - item.quantity
+    const { data: updatedProducts } = await adminClient
+      .from('products')
+      .select('id, name, stock_quantity, auto_hide_when_out, low_stock_threshold, is_available')
+      .in('id', productIds)
 
-      const updateData: Record<string, unknown> = { stock_quantity: newQty }
-      // إخفاء تلقائي إذا وصلت الكمية للصفر
-      const { data: prodFull } = await adminClient.from('products').select('auto_hide_when_out, low_stock_threshold, name').eq('id', item.id).single()
-      if (newQty <= 0 && prodFull?.auto_hide_when_out) {
-        updateData.is_available = false
+    for (const product of updatedProducts ?? []) {
+      const newQty = product.stock_quantity ?? 0
+      const threshold = product.low_stock_threshold ?? 3
+
+      if (newQty <= 0 && product.auto_hide_when_out && product.is_available) {
+        await adminClient.from('products').update({ is_available: false }).eq('id', product.id)
       }
 
-      await adminClient.from('products').update(updateData).eq('id', item.id)
-
-      // إشعار المدير عند انخفاض المخزون
-      const threshold = prodFull?.low_stock_threshold ?? 3
-      if (newQty <= threshold && newQty > 0) {
-        await notifyManagers({
-          title: '⚠️ تنبيه مخزون منخفض',
-          body: `المنتج "${prodFull?.name}" وصل لـ ${newQty} قطعة فقط!`,
-          type: 'order_update',
-          notificationType: 'low_stock',
-          orderId: order.id,
-        })
-      } else if (newQty <= 0) {
+      if (newQty <= 0) {
         await notifyManagers({
           title: '🔴 نفاد مخزون',
-          body: `المنتج "${prodFull?.name}" نفد بالكامل وتم إخفاؤه تلقائياً من المتجر.`,
+          body: `المنتج "${product.name}" نفد بالكامل وتم إخفاؤه تلقائياً من المتجر.`,
           type: 'order_update',
           notificationType: 'out_of_stock',
+          orderId: order.id,
+        })
+      } else if (newQty <= threshold) {
+        await notifyManagers({
+          title: '⚠️ تنبيه مخزون منخفض',
+          body: `المنتج "${product.name}" وصل لـ ${newQty} قطعة فقط!`,
+          type: 'order_update',
+          notificationType: 'low_stock',
           orderId: order.id,
         })
       }
     }
   } catch (err) {
-    console.error('[stock deduction error]', err)
+    console.error('[post-deduction stock handling]', err)
   }
   // ───────────────────────────────────────────────────────────────────
 
