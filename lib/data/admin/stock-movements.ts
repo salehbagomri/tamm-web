@@ -25,23 +25,6 @@ export type AdminStockMovementRow = {
   createdAt: string
 }
 
-function mapMovementRow(row: any): AdminStockMovementRow {
-  return {
-    id: row.id,
-    productId: row.product_id,
-    productName: row.products?.name ?? '—',
-    movementType: row.movement_type,
-    quantityBefore: row.quantity_before ?? 0,
-    quantityAfter: row.quantity_after ?? 0,
-    quantityChange: row.quantity_change ?? 0,
-    notes: row.notes ?? null,
-    performedByName: row.profiles?.full_name ?? null,
-    orderId: row.order_id ?? null,
-    orderNumber: row.orders?.order_number ?? null,
-    createdAt: row.created_at,
-  }
-}
-
 export async function getAdminStockMovements(
   filters: AdminStockMovementFilters = {}
 ): Promise<{ movements: AdminStockMovementRow[]; totalCount: number; totalPages: number }> {
@@ -61,13 +44,14 @@ export async function getAdminStockMovements(
     }
   }
 
+  // products & orders relationships auto-detected; performed_by is FK to auth.users
+  // (not public.profiles), so we fetch profiles separately below.
   let query = supabase
     .from('stock_movements')
     .select(
       `id, product_id, movement_type, quantity_before, quantity_after, quantity_change,
        notes, performed_by, order_id, created_at,
        products(name),
-       profiles!stock_movements_performed_by_fkey(full_name),
        orders(order_number)`,
       { count: 'exact' }
     )
@@ -86,7 +70,38 @@ export async function getAdminStockMovements(
     return { movements: [], totalCount: 0, totalPages: 0 }
   }
 
-  const movements = (data ?? []).map(mapMovementRow)
+  const rows = data ?? []
+
+  // جلب أسماء الـ performers في query منفصل
+  const performerIds = Array.from(
+    new Set(rows.map((r: any) => r.performed_by).filter((id: string | null): id is string => !!id))
+  )
+  const nameById = new Map<string, string>()
+  if (performerIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', performerIds)
+    for (const p of profiles ?? []) {
+      if (p.full_name) nameById.set(p.id, p.full_name)
+    }
+  }
+
+  const movements: AdminStockMovementRow[] = rows.map((row: any) => ({
+    id: row.id,
+    productId: row.product_id,
+    productName: row.products?.name ?? '—',
+    movementType: row.movement_type,
+    quantityBefore: row.quantity_before ?? 0,
+    quantityAfter: row.quantity_after ?? 0,
+    quantityChange: row.quantity_change ?? 0,
+    notes: row.notes ?? null,
+    performedByName: row.performed_by ? nameById.get(row.performed_by) ?? null : null,
+    orderId: row.order_id ?? null,
+    orderNumber: row.orders?.order_number ?? null,
+    createdAt: row.created_at,
+  }))
+
   const totalCount = count ?? 0
   const totalPages = Math.ceil(totalCount / limit)
 
