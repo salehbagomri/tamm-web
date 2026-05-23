@@ -45,6 +45,11 @@ export type AdminOrderDetail = Order & {
   startedAt: string | null
   completedAt: string | null
   managerNotes: string | null
+  // تأكيد استلام النقد (assignments table)
+  cashCollected: boolean
+  cashCollectedAt: string | null
+  cashAcknowledgedByCustomer: boolean | null
+  cashAcknowledgedAt: string | null
 }
 
 export type AvailableTechnician = {
@@ -163,6 +168,7 @@ export async function getAdminOrderById(orderId: string, supabaseClient?: any): 
       ),
       assignments(
         id, technician_id, technician_notes, photo_url, photo_urls, started_at, completed_at, created_at, manager_notes,
+        cash_collected, cash_collected_at, cash_acknowledged_by_customer, cash_acknowledged_at,
         technicians(profiles(id, full_name, phone))
       )
     `)
@@ -214,6 +220,10 @@ export async function getAdminOrderById(orderId: string, supabaseClient?: any): 
     startedAt: assignment?.started_at ?? null,
     completedAt: assignment?.completed_at ?? null,
     managerNotes: assignment?.manager_notes ?? null,
+    cashCollected: assignment?.cash_collected ?? false,
+    cashCollectedAt: assignment?.cash_collected_at ?? null,
+    cashAcknowledgedByCustomer: assignment?.cash_acknowledged_by_customer ?? null,
+    cashAcknowledgedAt: assignment?.cash_acknowledged_at ?? null,
     customerProfile: customerProfile ? {
       id: customerProfile.id,
       email: customerProfile.email ?? '',

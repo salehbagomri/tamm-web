@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { AdminOrderDetail } from '@/lib/data/admin/orders'
+import CashVerificationChip from './CashVerificationChip'
 
 interface AdminTechnicianProofProps {
   order: AdminOrderDetail
@@ -22,6 +23,8 @@ export default function AdminTechnicianProof({ order }: AdminTechnicianProofProp
   }
 
   const hasDocumentation = photos.length > 0 || order.technicianNotes
+  // شارة تأكيد النقد تظهر فقط للطلبات النقدية بعد تعيين فني
+  const showCashChip = order.paymentType === 'cash' && !!order.technicianId
 
   // احتساب مدة العمل الفني
   let durationText = ''
@@ -52,28 +55,37 @@ export default function AdminTechnicianProof({ order }: AdminTechnicianProofProp
   if (!hasDocumentation) {
     // إذا كان الطلب منتهياً بدون توثيق أو قيد التنفيذ وبانتظار التوثيق
     const isActive = ['assigned', 'on_the_way', 'in_progress'].includes(order.status)
-    if (!isActive && order.status !== 'completed') return null
+    if (!isActive && order.status !== 'completed' && !showCashChip) return null
 
     return (
       <div style={cardStyle}>
         <h3 style={{ margin: '0 0 0.875rem', fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           👷 توثيق الصيانة الميدانية
         </h3>
-        <div style={{
-          backgroundColor: 'var(--bg-surface2)',
-          borderRadius: '12px',
-          padding: '1.25rem',
-          border: '1px dashed var(--border)',
-          textAlign: 'center',
-          color: 'var(--text-second)',
-          fontSize: '0.9rem',
-        }}>
-          {order.status === 'completed' ? (
-            <p style={{ margin: 0 }}>⚠️ لم يقم الفني برفع صور توثيقية أو ملاحظات لهذه المهمة.</p>
-          ) : (
-            <p style={{ margin: 0 }}>⏳ بانتظار قيام الفني برفع صور العمل وكتابة التقرير الميداني عند إنجاز المهمة عبر التطبيق.</p>
-          )}
-        </div>
+
+        {showCashChip && (
+          <div style={{ marginBottom: '0.875rem' }}>
+            <CashVerificationChip order={order} />
+          </div>
+        )}
+
+        {(isActive || order.status === 'completed') && (
+          <div style={{
+            backgroundColor: 'var(--bg-surface2)',
+            borderRadius: '12px',
+            padding: '1.25rem',
+            border: '1px dashed var(--border)',
+            textAlign: 'center',
+            color: 'var(--text-second)',
+            fontSize: '0.9rem',
+          }}>
+            {order.status === 'completed' ? (
+              <p style={{ margin: 0 }}>⚠️ لم يقم الفني برفع صور توثيقية أو ملاحظات لهذه المهمة.</p>
+            ) : (
+              <p style={{ margin: 0 }}>⏳ بانتظار قيام الفني برفع صور العمل وكتابة التقرير الميداني عند إنجاز المهمة عبر التطبيق.</p>
+            )}
+          </div>
+        )}
       </div>
     )
   }
@@ -85,6 +97,9 @@ export default function AdminTechnicianProof({ order }: AdminTechnicianProofProp
       </h3>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        {/* شارة تأكيد استلام النقد */}
+        {showCashChip && <CashVerificationChip order={order} />}
+
         {/* التوقيت وفترة التنفيذ */}
         {(order.startedAt || order.completedAt) && (
           <div style={{
