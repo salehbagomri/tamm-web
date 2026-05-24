@@ -76,7 +76,14 @@ export default async function ProductDetailPage({ params }: Props) {
         gap: '2.5rem',
         alignItems: 'start',
       }}>
-        <ProductGallery imageUrl={product.imageUrl} productName={product.name} />
+        <ProductGallery
+          imageUrl={product.imageUrl}
+          productName={product.name}
+          isFeatured={product.isFeatured}
+          oldPrice={product.oldPrice}
+          price={product.price}
+          category={product.category}
+        />
         <ProductInfo product={product} isLoggedIn={isLoggedIn} />
       </div>
 
