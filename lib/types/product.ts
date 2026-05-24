@@ -7,6 +7,14 @@ export type ProductCategory =
   | 'solar_inverter'
   | 'accessory'
 
+export type ProductImage = {
+  id: string
+  productId: string
+  imageUrl: string
+  sortOrder: number
+  altText: string | null
+}
+
 export type Product = {
   id: string
   name: string
@@ -15,6 +23,7 @@ export type Product = {
   price: number | null
   isPriceOnRequest: boolean
   imageUrl: string | null
+  images: ProductImage[]
   brand: string | null
   specs: Record<string, unknown>
   isAvailable: boolean

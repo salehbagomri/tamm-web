@@ -60,6 +60,17 @@ export async function createProduct(data: ProductFormData): Promise<{ id?: strin
   }).select('id').single()
 
   if (error) { console.error('[createProduct]', error); return { error: 'فشل إنشاء المنتج' } }
+
+  // تزامن الصورة الأساسية مع جدول الصور الفرعي
+  if (data.imageUrl) {
+    await supabase.from('product_images').insert({
+      product_id: row.id,
+      image_url: data.imageUrl,
+      sort_order: 0,
+      alt_text: data.name.trim(),
+    })
+  }
+
   revalidateProducts()
   return { id: row.id }
 }
@@ -91,6 +102,39 @@ export async function updateProduct(id: string, data: ProductFormData): Promise<
   }).eq('id', id)
 
   if (error) { console.error('[updateProduct]', error); return { error: 'فشل تحديث المنتج' } }
+
+  // تزامن الصورة الأساسية مع جدول الصور الفرعي
+  if (data.imageUrl) {
+    const { data: existingImg } = await supabase
+      .from('product_images')
+      .select('id')
+      .eq('product_id', id)
+      .eq('sort_order', 0)
+      .maybeSingle()
+
+    if (existingImg) {
+      await supabase
+        .from('product_images')
+        .update({ image_url: data.imageUrl, alt_text: data.name.trim() })
+        .eq('id', existingImg.id)
+    } else {
+      await supabase
+        .from('product_images')
+        .insert({
+          product_id: id,
+          image_url: data.imageUrl,
+          sort_order: 0,
+          alt_text: data.name.trim(),
+        })
+    }
+  } else {
+    await supabase
+      .from('product_images')
+      .delete()
+      .eq('product_id', id)
+      .eq('sort_order', 0)
+  }
+
   revalidateProducts(id)
   return {}
 }

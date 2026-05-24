@@ -2,10 +2,12 @@
 
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
+import type { ProductImage } from '@/lib/types/product'
 
 interface ProductGalleryProps {
   imageUrl: string | null
   productName: string
+  images?: ProductImage[]
   isFeatured?: boolean
   oldPrice?: number | null
   price?: number | null
@@ -22,6 +24,7 @@ interface GalleryItem {
 export default function ProductGallery({
   imageUrl,
   productName,
+  images = [],
   isFeatured = false,
   oldPrice = null,
   price = null,
@@ -36,14 +39,24 @@ export default function ProductGallery({
   const mainImageRef = useRef<HTMLDivElement>(null)
   const mobileContainerRef = useRef<HTMLDivElement>(null)
 
-  // Generate three custom perspectives/perspectives of the single product image to create a rich gallery.
-  const galleryItems: GalleryItem[] = imageUrl
-    ? [
-        { id: 0, label: 'الرئيسية', url: imageUrl, styleType: 'default' },
-        { id: 1, label: 'لقطة استوديو', url: imageUrl, styleType: 'studio' },
-        { id: 2, label: 'مخطط فني', url: imageUrl, styleType: 'blueprint' },
-      ]
-    : []
+  // Use real uploaded images if available, otherwise fall back to premium generated perspectives
+  const galleryItems: GalleryItem[] = []
+  if (images && images.length > 0) {
+    images.forEach((img, idx) => {
+      galleryItems.push({
+        id: idx,
+        label: img.altText || `زاوية عرض ${idx + 1}`,
+        url: img.imageUrl,
+        styleType: 'default',
+      })
+    })
+  } else if (imageUrl) {
+    galleryItems.push(
+      { id: 0, label: 'الرئيسية', url: imageUrl, styleType: 'default' },
+      { id: 1, label: 'لقطة استوديو', url: imageUrl, styleType: 'studio' },
+      { id: 2, label: 'مخطط فني', url: imageUrl, styleType: 'blueprint' }
+    )
+  }
 
   const hasDiscount = oldPrice && price && price < oldPrice
   const discountPct = hasDiscount ? Math.round((1 - price! / oldPrice!) * 100) : null

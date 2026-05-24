@@ -2,6 +2,14 @@ import { cache } from 'react'
 import { createServerClient } from '@/lib/supabase/server'
 import type { Product, ProductCategory } from '@/lib/types/product'
 
+type RawProductImage = {
+  id: string
+  product_id: string
+  image_url: string
+  sort_order: number
+  alt_text: string | null
+}
+
 type RawProduct = {
   id: string; name: string; description: string | null; category: string
   price: number | null; is_price_on_request: boolean; image_url: string | null
@@ -9,13 +17,26 @@ type RawProduct = {
   is_featured: boolean; requires_installation: boolean
   installation_price: number; old_price: number | null
   stock_quantity?: number; auto_hide_when_out?: boolean
+  product_images?: RawProductImage[]
 }
 
 function mapProduct(r: RawProduct): Product {
+  const images = (r.product_images ?? [])
+    .map((img) => ({
+      id: img.id,
+      productId: img.product_id,
+      imageUrl: img.image_url,
+      sortOrder: img.sort_order,
+      altText: img.alt_text,
+    }))
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+
   return {
     id: r.id, name: r.name, description: r.description,
     category: r.category as ProductCategory, price: r.price,
-    isPriceOnRequest: r.is_price_on_request, imageUrl: r.image_url,
+    isPriceOnRequest: r.is_price_on_request, 
+    imageUrl: images.length > 0 ? images[0].imageUrl : r.image_url,
+    images,
     brand: r.brand, specs: r.specs, isAvailable: r.is_available,
     isFeatured: r.is_featured, requiresInstallation: r.requires_installation,
     installationPrice: r.installation_price, oldPrice: r.old_price,
@@ -47,7 +68,7 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
   const { category, sort = 'newest', search, page = 1, limit = 12 } = filters
   try {
     const supabase = await createServerClient()
-    let query = supabase.from('products').select('*', { count: 'exact' }).eq('is_available', true)
+    let query = supabase.from('products').select('*, product_images(*)', { count: 'exact' }).eq('is_available', true)
     // إخفاء المنتجات النافدة التي تم تفعيل الإخفاء التلقائي لها
     query = query.or('stock_quantity.gt.0,auto_hide_when_out.eq.false')
 
@@ -77,7 +98,7 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
 export const getProductById = cache(async (id: string): Promise<Product | null> => {
   try {
     const supabase = await createServerClient()
-    const { data } = await supabase.from('products').select('*').eq('id', id).single()
+    const { data } = await supabase.from('products').select('*, product_images(*)').eq('id', id).single()
     return data ? mapProduct(data as RawProduct) : null
   } catch { return null }
 })
@@ -86,7 +107,7 @@ export async function getRelatedProducts(category: string, excludeId: string): P
   try {
     const supabase = await createServerClient()
     const { data } = await supabase
-      .from('products').select('*')
+      .from('products').select('*, product_images(*)')
       .eq('category', category).eq('is_available', true)
       .or('stock_quantity.gt.0,auto_hide_when_out.eq.false')
       .neq('id', excludeId).limit(4)

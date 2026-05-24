@@ -79,6 +79,7 @@ export default async function ProductDetailPage({ params }: Props) {
         <ProductGallery
           imageUrl={product.imageUrl}
           productName={product.name}
+          images={product.images}
           isFeatured={product.isFeatured}
           oldPrice={product.oldPrice}
           price={product.price}

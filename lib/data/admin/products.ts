@@ -9,6 +9,16 @@ export type AdminProductFilters = {
 }
 
 function mapProduct(row: any): Product {
+  const images = (row.product_images ?? [])
+    .map((img: any) => ({
+      id: img.id,
+      productId: img.product_id,
+      imageUrl: img.image_url,
+      sortOrder: img.sort_order,
+      altText: img.alt_text,
+    }))
+    .sort((a: any, b: any) => a.sortOrder - b.sortOrder)
+
   return {
     id: row.id,
     name: row.name,
@@ -16,7 +26,8 @@ function mapProduct(row: any): Product {
     category: row.category,
     price: row.price ?? null,
     isPriceOnRequest: row.is_price_on_request ?? false,
-    imageUrl: row.image_url ?? null,
+    imageUrl: images.length > 0 ? images[0].imageUrl : (row.image_url ?? null),
+    images,
     brand: row.brand ?? null,
     specs: row.specs ?? {},
     isAvailable: row.is_available ?? true,
@@ -42,7 +53,7 @@ export async function getAdminProducts(
 
   let query = supabase
     .from('products')
-    .select('*', { count: 'exact' })
+    .select('*, product_images(*)', { count: 'exact' })
 
   if (category && category !== 'all') query = query.eq('category', category)
   if (search?.trim()) query = query.ilike('name', `%${search.trim()}%`)
@@ -65,7 +76,7 @@ export async function getAdminProducts(
 
 export async function getAdminProductById(id: string): Promise<Product | null> {
   const supabase = await createServerClient()
-  const { data, error } = await supabase.from('products').select('*').eq('id', id).single()
+  const { data, error } = await supabase.from('products').select('*, product_images(*)').eq('id', id).single()
   if (error || !data) return null
   return mapProduct(data)
 }
