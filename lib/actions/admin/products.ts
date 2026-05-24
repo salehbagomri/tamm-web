@@ -215,7 +215,10 @@ export async function uploadProductImage(
     .from('product-images')
     .upload(filename, file, { upsert: true, contentType: file.type })
 
-  if (upErr) { console.error('[uploadProductImage]', upErr); return { error: 'فشل رفع الصورة' } }
+  if (upErr) {
+    console.error('[uploadProductImage]', upErr)
+    return { error: `فشل رفع الصورة: ${upErr.message}` }
+  }
 
   const { data } = supabase.storage.from('product-images').getPublicUrl(filename)
   return { url: data.publicUrl }
