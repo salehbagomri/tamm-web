@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Product, ProductCategory } from '@/lib/types/product'
 import { createProduct, updateProduct, uploadProductImage } from '@/lib/actions/admin/products'
@@ -14,6 +14,14 @@ const CATEGORIES: { value: ProductCategory; label: string }[] = [
 ]
 
 interface AdminProductFormProps { product?: Product }
+
+interface LocalImage {
+  id?: string
+  imageUrl: string
+  sortOrder: number
+  isNew?: boolean
+  file?: File
+}
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '0.75rem 1rem', backgroundColor: 'var(--bg-surface2)',
@@ -46,8 +54,10 @@ export default function AdminProductForm({ product }: AdminProductFormProps) {
   const [installationPrice, setInstallationPrice] = useState(product?.installationPrice?.toString() ?? '')
   const [isAvailable, setIsAvailable]             = useState(product?.isAvailable ?? true)
   const [isFeatured, setIsFeatured]               = useState(product?.isFeatured ?? false)
-  const [imageUrl, setImageUrl]                   = useState(product?.imageUrl ?? '')
-  const [imagePreview, setImagePreview]           = useState(product?.imageUrl ?? '')
+  
+  // إدارة صور المنتجات المتعددة
+  const [imagesList, setImagesList]               = useState<LocalImage[]>([])
+  
   const [specs, setSpecs]                         = useState<{ key: string; value: string }[]>(
     Object.entries(product?.specs ?? {}).map(([key, value]) => ({ key, value: String(value) }))
   )
@@ -64,16 +74,87 @@ export default function AdminProductForm({ product }: AdminProductFormProps) {
   const [success, setSuccess]     = useState('')
   const [error, setError]         = useState('')
 
+  // تهيئة الصور المتوفرة للمنتج
+  useEffect(() => {
+    if (product) {
+      const initialImages: LocalImage[] = (product.images ?? []).map((img) => ({
+        id: img.id,
+        imageUrl: img.imageUrl,
+        sortOrder: img.sortOrder,
+      }))
+      
+      // Fallback في حال كانت هناك صورة قديمة image_url فقط
+      if (initialImages.length === 0 && product.imageUrl) {
+        initialImages.push({
+          imageUrl: product.imageUrl,
+          sortOrder: 0,
+        })
+      }
+      setImagesList(initialImages.sort((a, b) => a.sortOrder - b.sortOrder))
+    }
+  }, [product])
+
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setImagePreview(URL.createObjectURL(file))
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
     setUploading(true)
-    const fd = new FormData(); fd.append('file', file)
-    const res = await uploadProductImage(fd)
+    setError('')
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      if (file.size > 5 * 1024 * 1024) {
+        setError(`حجم الصورة "${file.name}" أكبر من 5 ميجابايت`)
+        continue
+      }
+
+      const fd = new FormData()
+      fd.append('file', file)
+      
+      const res = await uploadProductImage(fd)
+      if (res.error) {
+        setError(res.error)
+      } else if (res.url) {
+        setImagesList((prev) => {
+          const newImg: LocalImage = {
+            imageUrl: res.url!,
+            sortOrder: prev.length,
+          }
+          return [...prev, newImg]
+        })
+      }
+    }
     setUploading(false)
-    if (res.error) setError(res.error)
-    else { setImageUrl(res.url ?? ''); setError('') }
+    if (fileRef.current) fileRef.current.value = ''
+  }
+
+  function removeImage(index: number) {
+    setImagesList((prev) => {
+      const filtered = prev.filter((_, idx) => idx !== index)
+      // إعادة تعيين sortOrder تصاعدياً بناءً على الموقع الجديد
+      return filtered.map((img, idx) => ({ ...img, sortOrder: idx }))
+    })
+  }
+
+  function shiftImage(index: number, direction: 'left' | 'right') {
+    if (index === 0 && direction === 'left') return
+    if (index === imagesList.length - 1 && direction === 'right') return
+
+    const targetIndex = direction === 'left' ? index - 1 : index + 1
+    const newList = [...imagesList]
+    
+    // سواب (تبديل المواقع)
+    const temp = newList[index]
+    newList[index] = newList[targetIndex]
+    newList[targetIndex] = temp
+
+    // تحديث sortOrder
+    const finalizedList = newList.map((img, idx) => ({
+      ...img,
+      sortOrder: idx,
+    }))
+
+    setImagesList(finalizedList)
   }
 
   function addSpec() { setSpecs([...specs, { key: '', value: '' }]) }
@@ -90,6 +171,10 @@ export default function AdminProductForm({ product }: AdminProductFormProps) {
     const specsObj = Object.fromEntries(specs.filter(s => s.key.trim()).map(s => [s.key.trim(), s.value.trim()]))
 
     setLoading(true); setError(''); setSuccess('')
+    
+    // إرسال المصفوفة الجديدة والـ primaryUrl
+    const primaryUrl = imagesList.length > 0 ? imagesList[0].imageUrl : null
+
     const data = {
       name, category, brand: brand || null, description: description || null,
       price: isPriceOnRequest ? null : (parseFloat(price) || null),
@@ -97,7 +182,12 @@ export default function AdminProductForm({ product }: AdminProductFormProps) {
       isPriceOnRequest, requiresInstallation,
       installationPrice: requiresInstallation ? (parseFloat(installationPrice) || 0) : 0,
       isAvailable, isFeatured,
-      imageUrl: imageUrl || null,
+      imageUrl: primaryUrl,
+      images: imagesList.map((img) => ({
+        id: img.id,
+        imageUrl: img.imageUrl,
+        sortOrder: img.sortOrder,
+      })),
       specs: specsObj,
       costPrice: costPrice ? parseFloat(costPrice) : null,
       stockQuantity: parseInt(stockQuantity) || 0,
@@ -124,7 +214,7 @@ export default function AdminProductForm({ product }: AdminProductFormProps) {
   const h3: React.CSSProperties = { margin: '0 0 1.25rem', fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
+    <form onSubmit={handleSubmit} noValidate dir="rtl">
       {success && <div style={{ padding: '0.75rem 1rem', marginBottom: '1rem', borderRadius: '10px', backgroundColor: 'rgba(34,201,138,0.1)', border: '1px solid rgba(34,201,138,0.3)', color: 'var(--success)', fontSize: '0.875rem' }}>{success}</div>}
       {error  && <div style={{ padding: '0.75rem 1rem', marginBottom: '1rem', borderRadius: '10px', backgroundColor: 'rgba(224,82,82,0.1)', border: '1px solid rgba(224,82,82,0.3)', color: 'var(--error)', fontSize: '0.875rem' }}>{error}</div>}
 
@@ -234,21 +324,163 @@ export default function AdminProductForm({ product }: AdminProductFormProps) {
         })()}
       </div>
 
-      {/* ── الصورة ── */}
+      {/* ── معرض صور المنتج المتعددة (Upgraded) ── */}
       <div style={card}>
-        <h3 style={h3}>🖼 صورة المنتج</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start' }}>
-          {imagePreview && (
-            <div style={{ width: '120px', height: '120px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border)' }}>
-              <img src={imagePreview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <h3 style={h3}>🖼 معرض صور المنتج (صور متعددة)</h3>
+        <p style={{ color: 'var(--text-second)', fontSize: '0.8rem', margin: '0 0 1.25rem', lineHeight: 1.4 }}>
+          يمكنك رفع صور متعددة للمنتج. الصورة الأولى (أقصى اليمين) ستكون هي الصورة الرئيسية للغلاف. استخدم الأسهم لإعادة ترتيب أولويات الصور.
+        </p>
+
+        {/* شبكة الصور المرفوعة */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+          gap: '1rem',
+          marginBottom: '1.25rem',
+        }}>
+          {imagesList.map((img, idx) => (
+            <div key={idx} style={{
+              position: 'relative',
+              aspectRatio: '1',
+              border: idx === 0 ? '2px solid var(--blue-primary)' : '1px solid var(--border)',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              backgroundColor: 'var(--bg-surface2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: idx === 0 ? '0 4px 12px rgba(21,118,212,0.15)' : 'none',
+            }}>
+              <img src={img.imageUrl} alt={`product-img-${idx}`} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '0.5rem' }} />
+              
+              {/* شارة الصورة الرئيسية */}
+              {idx === 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '6px',
+                  right: '6px',
+                  backgroundColor: 'var(--blue-primary)',
+                  color: '#fff',
+                  fontSize: '0.65rem',
+                  fontWeight: 700,
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                }}>
+                  رئيسية
+                </span>
+              )}
+
+              {/* زر الحذف */}
+              <button
+                type="button"
+                onClick={() => removeImage(idx)}
+                style={{
+                  position: 'absolute',
+                  top: '6px',
+                  left: '6px',
+                  backgroundColor: 'rgba(224,82,82,0.85)',
+                  border: 'none',
+                  borderRadius: '4px',
+                  width: '20px',
+                  height: '20px',
+                  color: '#fff',
+                  fontSize: '0.75rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  zIndex: 2,
+                }}
+              >
+                ✕
+              </button>
+
+              {/* أزرار الأسهم لإعادة الترتيب */}
+              <div style={{
+                position: 'absolute',
+                bottom: '6px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                display: 'flex',
+                gap: '0.375rem',
+                backgroundColor: 'rgba(8,14,24,0.75)',
+                padding: '2px 6px',
+                borderRadius: '6px',
+                zIndex: 2,
+              }}>
+                <button
+                  type="button"
+                  disabled={idx === 0}
+                  onClick={() => shiftImage(idx, 'left')}
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: idx === 0 ? 'var(--text-faint)' : '#fff',
+                    fontSize: '0.7rem',
+                    cursor: idx === 0 ? 'not-allowed' : 'pointer',
+                    padding: 0,
+                  }}
+                >
+                  ◀
+                </button>
+                <span style={{ color: 'var(--text-second)', fontSize: '0.65rem' }}>{idx + 1}</span>
+                <button
+                  type="button"
+                  disabled={idx === imagesList.length - 1}
+                  onClick={() => shiftImage(idx, 'right')}
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: idx === imagesList.length - 1 ? 'var(--text-faint)' : '#fff',
+                    fontSize: '0.7rem',
+                    cursor: idx === imagesList.length - 1 ? 'not-allowed' : 'pointer',
+                    padding: 0,
+                  }}
+                >
+                  ▶
+                </button>
+              </div>
             </div>
-          )}
-          <input ref={fileRef} type="file" accept=".jpg,.jpeg,.png,.webp" onChange={handleImageUpload} style={{ display: 'none' }} />
-          <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
-            style={{ padding: '0.625rem 1.25rem', borderRadius: '10px', backgroundColor: 'var(--bg-surface2)', border: '1px solid var(--border)', color: 'var(--text-second)', fontSize: '0.875rem', cursor: uploading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', fontWeight: 500 }}>
-            {uploading ? 'جاري الرفع...' : imagePreview ? '📷 تغيير الصورة' : '📷 رفع صورة'}
-          </button>
+          ))}
+
+          {/* كرت رفع صورة جديدة فارغ */}
+          <div
+            onClick={() => fileRef.current?.click()}
+            style={{
+              aspectRatio: '1',
+              border: '2px dashed var(--border)',
+              borderRadius: '12px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: uploading ? 'not-allowed' : 'pointer',
+              backgroundColor: 'rgba(255,255,255,0.01)',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              if (!uploading) e.currentTarget.style.borderColor = 'var(--blue-primary)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--border)'
+            }}
+          >
+            <span style={{ fontSize: '1.75rem', color: 'var(--text-second)' }}>+</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-second)', marginTop: '0.25rem' }}>
+              {uploading ? 'جاري الرفع...' : 'رفع صورة'}
+            </span>
+          </div>
         </div>
+
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".jpg,.jpeg,.png,.webp"
+          multiple
+          onChange={handleImageUpload}
+          style={{ display: 'none' }}
+        />
       </div>
 
       {/* ── المواصفات ── */}

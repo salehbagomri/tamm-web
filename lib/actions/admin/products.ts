@@ -24,6 +24,7 @@ export type ProductFormData = {
   isAvailable: boolean
   isFeatured: boolean
   imageUrl?: string | null
+  images?: Array<{ id?: string; imageUrl: string; sortOrder: number }>
   specs?: Record<string, string>
   // حقول المخزون والتكلفة
   costPrice?: number | null
@@ -37,6 +38,13 @@ export type ProductFormData = {
 export async function createProduct(data: ProductFormData): Promise<{ id?: string; error?: string }> {
   const supabase = await createServerClient()
 
+  // تحديد الصورة الافتراضية للتوافقية
+  let primaryUrl = data.imageUrl ?? null
+  if (data.images && data.images.length > 0) {
+    const sorted = [...data.images].sort((a, b) => a.sortOrder - b.sortOrder)
+    primaryUrl = sorted[0].imageUrl
+  }
+
   const { data: row, error } = await supabase.from('products').insert({
     name: data.name.trim(),
     category: data.category,
@@ -49,7 +57,7 @@ export async function createProduct(data: ProductFormData): Promise<{ id?: strin
     installation_price: data.requiresInstallation ? (data.installationPrice ?? 0) : 0,
     is_available: data.isAvailable,
     is_featured: data.isFeatured,
-    image_url: data.imageUrl ?? null,
+    image_url: primaryUrl,
     specs: data.specs ?? {},
     cost_price: data.costPrice ?? null,
     stock_quantity: data.stockQuantity ?? 0,
@@ -61,8 +69,17 @@ export async function createProduct(data: ProductFormData): Promise<{ id?: strin
 
   if (error) { console.error('[createProduct]', error); return { error: 'فشل إنشاء المنتج' } }
 
-  // تزامن الصورة الأساسية مع جدول الصور الفرعي
-  if (data.imageUrl) {
+  // تزامن الصور المتعددة مع جدول الصور الفرعي
+  if (data.images && data.images.length > 0) {
+    const rowsToInsert = data.images.map((img) => ({
+      product_id: row.id,
+      image_url: img.imageUrl,
+      sort_order: img.sortOrder,
+      alt_text: data.name.trim(),
+    }))
+    await supabase.from('product_images').insert(rowsToInsert)
+  } else if (data.imageUrl) {
+    // Fallback للصورة المفردة
     await supabase.from('product_images').insert({
       product_id: row.id,
       image_url: data.imageUrl,
@@ -78,6 +95,13 @@ export async function createProduct(data: ProductFormData): Promise<{ id?: strin
 export async function updateProduct(id: string, data: ProductFormData): Promise<{ error?: string }> {
   const supabase = await createServerClient()
 
+  // تحديد الصورة الافتراضية للتوافقية
+  let primaryUrl = data.imageUrl ?? null
+  if (data.images && data.images.length > 0) {
+    const sorted = [...data.images].sort((a, b) => a.sortOrder - b.sortOrder)
+    primaryUrl = sorted[0].imageUrl
+  }
+
   const { error } = await supabase.from('products').update({
     name: data.name.trim(),
     category: data.category,
@@ -90,7 +114,7 @@ export async function updateProduct(id: string, data: ProductFormData): Promise<
     installation_price: data.requiresInstallation ? (data.installationPrice ?? 0) : 0,
     is_available: data.isAvailable,
     is_featured: data.isFeatured,
-    image_url: data.imageUrl ?? null,
+    image_url: primaryUrl,
     specs: data.specs ?? {},
     cost_price: data.costPrice ?? null,
     stock_quantity: data.stockQuantity ?? 0,
@@ -103,8 +127,23 @@ export async function updateProduct(id: string, data: ProductFormData): Promise<
 
   if (error) { console.error('[updateProduct]', error); return { error: 'فشل تحديث المنتج' } }
 
-  // تزامن الصورة الأساسية مع جدول الصور الفرعي
-  if (data.imageUrl) {
+  // تزامن الصور المتعددة مع جدول الصور الفرعي
+  if (data.images) {
+    // 1. حذف جميع الصور القديمة للمنتج
+    await supabase.from('product_images').delete().eq('product_id', id)
+
+    // 2. إدراج الصور الجديدة إن وجدت
+    if (data.images.length > 0) {
+      const rowsToInsert = data.images.map((img) => ({
+        product_id: id,
+        image_url: img.imageUrl,
+        sort_order: img.sortOrder,
+        alt_text: data.name.trim(),
+      }))
+      await supabase.from('product_images').insert(rowsToInsert)
+    }
+  } else if (data.imageUrl) {
+    // Fallback للصورة المفردة القديمة
     const { data: existingImg } = await supabase
       .from('product_images')
       .select('id')
@@ -128,6 +167,7 @@ export async function updateProduct(id: string, data: ProductFormData): Promise<
         })
     }
   } else {
+    // حذف الصورة المفردة
     await supabase
       .from('product_images')
       .delete()
