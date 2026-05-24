@@ -18,7 +18,7 @@ export async function calculateCommissionForOrder(orderId: string): Promise<{ er
       .from('orders')
       .select(`
         id, order_type, total_amount, include_installation,
-        order_items(item_type, unit_price, total_price, quantity, include_installation)
+        order_items(item_type, unit_price, total_price, quantity, include_installation, product_id, products(installation_price))
       `)
       .eq('id', orderId)
       .single()
@@ -78,6 +78,10 @@ export async function calculateCommissionForOrder(orderId: string): Promise<{ er
       total_price: number
       quantity: number
       include_installation: boolean
+      product_id: string | null
+      products: {
+        installation_price: number
+      } | null
     }> | null
 
     if (order.order_type === 'product') {
@@ -121,9 +125,10 @@ export async function calculateCommissionForOrder(orderId: string): Promise<{ er
         let installationFee = 0
         if (items) {
           for (const item of items) {
-            const baseTotal = item.unit_price * item.quantity
-            const installPart = Math.max(0, item.total_price - baseTotal)
-            installationFee += installPart
+            if (item.include_installation) {
+              const installPrice = item.products?.installation_price ?? 0
+              installationFee += Number(installPrice) * item.quantity
+            }
           }
         }
         commissionAmount = (installationFee * Number(rule.value)) / 100
