@@ -72,7 +72,7 @@ export async function calculateCommissionForOrder(orderId: string): Promise<{ er
 
     // تحديد نوع المهمة بناءً على نوع الطلب
     let taskType: TaskType = 'maintenance'
-    const items = order.order_items as Array<{
+    const items = order.order_items as unknown as Array<{
       item_type: string
       unit_price: number
       total_price: number
@@ -81,7 +81,9 @@ export async function calculateCommissionForOrder(orderId: string): Promise<{ er
       product_id: string | null
       products: {
         installation_price: number
-      } | null
+      } | Array<{
+        installation_price: number
+      }> | null
     }> | null
 
     if (order.order_type === 'product') {
@@ -126,7 +128,15 @@ export async function calculateCommissionForOrder(orderId: string): Promise<{ er
         if (items) {
           for (const item of items) {
             if (item.include_installation) {
-              const installPrice = item.products?.installation_price ?? 0
+              // التعامل بمرونة مع كون الحقل كائن منفرد أو مصفوفة منضمة
+              let installPrice = 0
+              if (item.products) {
+                if (Array.isArray(item.products)) {
+                  installPrice = item.products[0]?.installation_price ?? 0
+                } else {
+                  installPrice = item.products.installation_price ?? 0
+                }
+              }
               installationFee += Number(installPrice) * item.quantity
             }
           }

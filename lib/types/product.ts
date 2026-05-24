@@ -23,7 +23,7 @@ export type Product = {
   price: number | null
   isPriceOnRequest: boolean
   imageUrl: string | null
-  images: ProductImage[]
+  images?: ProductImage[]
   brand: string | null
   specs: Record<string, unknown>
   isAvailable: boolean
